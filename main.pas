@@ -11,6 +11,13 @@ type
     x: integer;
     oy1,oy2: integer;
   end;
+  TActor = record
+    p: TPoint;
+    gover: boolean;
+    score: integer;
+    input: array[0..1] of boolean;
+    color: TColor;
+  end;
 
   TForm1 = class(TForm)
     Panel1: TPanel;
@@ -26,17 +33,19 @@ type
       Shift: TShiftState);
   private
     { Private declarations }
-    keybd: array[0..65535] of boolean;
     walls: array[0..3] of TWall;
-    pc: TPoint;
-    score: integer;
-    gover: boolean;
+    act: array of TActor;
+    auto: boolean;
   public
     { Public declarations }
-    procedure Reset;
+    procedure Reset(id: integer);
+    procedure ResetField;
     procedure SetWall(idx,cx: integer);
-    procedure GameOver;
+    procedure Step(id: integer);
+    procedure StepField;
+    procedure GameOver(id: integer);
     procedure Draw;
+    procedure TranslateKey(key: Word; state: boolean);
   end;
 
 const
@@ -55,20 +64,33 @@ implementation
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   Randomize;
-  Reset;
+  SetLength(act,1);
+  act[0].color := clFuchsia;
+  Reset(0);
+  ResetField;
+  auto := false;
 end;
 
-procedure TForm1.Reset;
+procedure TForm1.Reset(id: integer);
 var
   I: Integer;
 begin
-  pc.X := pb.ClientWidth div 3;
-  pc.Y := pb.ClientHeight div 2;
-  gover := false;
-  score := 0;
+  with act[id] do
+  begin
+    p.X := pb.ClientWidth div 3;
+    p.Y := pb.ClientHeight div 2;
+    gover := false;
+    score := 0;
+    for I := 0 to High(input) do input[I] := false;
+  end;    // with
+end;
+
+procedure TForm1.ResetField;
+var
+  I: Integer;
+begin
   SetWall(0,pb.ClientWidth);
   for I := 1 to High(walls) do SetWall(I,0);
-  for I := 0 to High(keybd) do keybd[I] := false;
 end;
 
 procedure TForm1.SetWall(idx,cx: integer);
@@ -89,59 +111,73 @@ begin
   walls[idx].oy2 := walls[idx].oy1 + random(pb.ClientHeight - walls[idx].oy1 - cellsize*2) + cellsize*2;
 end;
 
-procedure TForm1.Timer1Timer(Sender: TObject);
+procedure TForm1.Step(id: integer);
 var
   I: Integer;
 begin
-  if (pc.Y <= 0) or (pc.Y + cellsize >= pb.ClientHeight) then
+  with act[id] do
   begin
-    GameOver;
-    exit;
-  end;
-
-  for I := 0 to High(walls) do
-  begin
-    if (walls[I].x <= pc.X + cellsize) and (walls[I].x + cellsize >= pc.X + cellsize) then
+    if gover then exit;
+      
+    if (p.Y <= 0) or (p.Y + cellsize >= pb.ClientHeight) then
     begin
-      if (pc.Y <= walls[I].oy1) or (pc.Y + cellsize >= walls[I].oy2) then
-      begin
-        GameOver;
-        exit;
-      end;
+      GameOver(id);
+      exit;
     end;
 
+    for I := 0 to High(walls) do
+    begin
+      if (walls[I].x <= p.X + cellsize) and (walls[I].x + cellsize >= p.X + cellsize) then
+      begin
+        if (p.Y <= walls[I].oy1) or (p.Y + cellsize >= walls[I].oy2) then
+        begin
+          GameOver(id);
+          exit;
+        end;
+      end;
+    end;    // for
+
+    if input[0] then p.Y := p.Y - jumpspeed
+    else if input[1] then p.Y := p.Y + jumpspeed
+    else p.Y := p.Y + gravity;
+  end;    // with
+end;
+
+procedure TForm1.StepField;
+var
+  I: Integer;
+begin
+  for I := 0 to High(walls) do
+  begin
     walls[I].x := walls[I].x - 1;
     if walls[I].x < -cellsize then SetWall(I,0);
   end;    // for
-
-  if keybd[VK_UP] then pc.Y := pc.Y - jumpspeed
-  else if keybd[VK_DOWN] then pc.Y := pc.Y + jumpspeed
-  else pc.Y := pc.Y + gravity;
-
-  Draw;
-  Inc(score);
-  Label1.Caption := 'Score: '+IntToStr(score);
 end;
 
 procedure TForm1.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
+  if auto then exit;
   if not Timer1.Enabled then Timer1.Enabled := True;
-  keybd[Key] := True;
+  TranslateKey(Key,true);
 end;
 
 procedure TForm1.FormKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  keybd[Key] := False;
+  if not auto then TranslateKey(Key,false);
 end;
 
-procedure TForm1.GameOver;
+procedure TForm1.GameOver(id: integer);
 begin
-  gover := True;
-  Timer1.Enabled := False;
-  ShowMessage('Game over');
-  Reset;
+  act[id].gover := True;
+  if not auto then
+  begin
+    Timer1.Enabled := False;
+    ShowMessage('Game over');
+    Reset(0);
+    ResetField;
+  end;
 end;
 
 procedure TForm1.Draw;
@@ -169,10 +205,42 @@ begin
 
   with pb.Canvas do
   begin
-    Brush.Color := clFuchsia;
     Pen.Color := clRed;
-    Ellipse(pc.X,pc.Y,pc.X+cellsize,pc.Y+cellsize);
+    for I := 0 to High(act) do
+    begin
+      with act[I] do
+      begin
+        Brush.Color := color;
+        Ellipse(p.X,p.Y,p.X+cellsize,p.Y+cellsize);
+      end;    // with
+    end;    // for
   end;    // with
+end;
+
+procedure TForm1.Timer1Timer(Sender: TObject);
+begin
+  Step(0);
+  StepField;
+  Draw;
+  Inc(act[0].score);
+  Label1.Caption := 'Score: '+IntToStr(act[0].score);
+end;
+
+procedure TForm1.TranslateKey(key: Word; state: boolean);
+var
+  i: Integer;
+begin
+  i := -1;
+  case Key of    //
+    VK_UP: i := 0;
+    VK_SPACE: i := 0;
+    Ord('W'): i := 0;
+    Ord('S'): i := 1;
+    VK_DOWN: i := 1;
+  end;    // case
+
+  if i < 0 then exit;
+  act[0].input[i] := state;
 end;
 
 end.
