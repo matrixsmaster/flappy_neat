@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ImgList, ExtCtrls, StdCtrls;
+  Dialogs, ImgList, ExtCtrls, StdCtrls, Spin, Buttons, Grids;
 
 type
   TWall = record
@@ -25,12 +25,24 @@ type
     Timer1: TTimer;
     ImageList1: TImageList;
     Label1: TLabel;
+    numAct: TSpinEdit;
+    Label2: TLabel;
+    BitBtn1: TBitBtn;
+    GroupBox1: TGroupBox;
+    rb1: TRadioButton;
+    rb2: TRadioButton;
+    rb3: TRadioButton;
+    Timer2: TTimer;
+    cb1: TCheckBox;
+    Edit1: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure FormKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure BitBtn1Click(Sender: TObject);
+    procedure Timer2Timer(Sender: TObject);
   private
     { Private declarations }
     walls: array[0..3] of TWall;
@@ -46,6 +58,7 @@ type
     procedure GameOver(id: integer);
     procedure Draw;
     procedure TranslateKey(key: Word; state: boolean);
+    procedure SolveTrad(id: integer);
   end;
 
 const
@@ -89,6 +102,7 @@ procedure TForm1.ResetField;
 var
   I: Integer;
 begin
+  for I := 0 to High(walls) do walls[I].x := 0;
   SetWall(0,pb.ClientWidth);
   for I := 1 to High(walls) do SetWall(I,0);
 end;
@@ -241,6 +255,72 @@ begin
 
   if i < 0 then exit;
   act[0].input[i] := state;
+end;
+
+procedure TForm1.BitBtn1Click(Sender: TObject);
+var
+  I: Integer;
+begin
+  auto := true;
+  Timer1.Enabled := false;
+  SetLength(act,numAct.Value);
+  for I := 0 to High(act) do
+  begin
+    Reset(I);
+    act[I].color := random($FFFFFF);
+  end;    // for
+  ResetField;
+  Timer2.Enabled := true;
+end;
+
+procedure TForm1.Timer2Timer(Sender: TObject);
+var
+  I: Integer;
+begin
+  for I := 0 to High(act) do
+  begin
+    if rb1.Checked then SolveTrad(I);
+    Step(I);
+  end;    // for
+  StepField;
+  if cb1.Checked then Draw;
+end;
+
+procedure TForm1.SolveTrad(id: integer);
+var
+  I,mind,nxt: Integer;
+  mp,ou: integer;
+begin
+  mind := pb.ClientWidth;
+  nxt := -1;
+
+  with act[id] do
+  begin
+    for I := 0 to High(walls) do
+    begin
+      if (walls[I].x > p.X) and (walls[I].x - p.X < mind) then
+      begin
+        mind := walls[I].x - p.X;
+        nxt := I;
+      end;
+      if (walls[I].x <= p.X) and (walls[I].x + cellsize >= p.X) then
+      begin
+        mind := walls[I].x - p.X;
+        nxt := I;
+        break;
+      end;
+    end;    // for
+
+    if nxt < 0 then mp := pb.ClientHeight div 2
+    else mp := (walls[nxt].oy2 - walls[nxt].oy1) div 2 + walls[nxt].oy1;
+    ou := p.Y + cellsize div 2;
+
+    input[0] := ou > mp;
+    input[1] := ou < mp;
+
+    if p.Y <= jumpspeed then input[0] := false;
+    if p.Y >= pb.ClientHeight - jumpspeed then input[1] := false;
+  end;    // with
 end;
 
 end.
