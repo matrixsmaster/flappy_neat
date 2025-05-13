@@ -4,20 +4,34 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ImgList, ExtCtrls, StdCtrls, Spin, Buttons, Grids;
+  Dialogs, ImgList, ExtCtrls, StdCtrls, Spin, Buttons, Grids, ComCtrls;
+
+const
+  numwalls = 4;
+  maxneurons = 16;
+  mindist = 100;
+  cellsize = 16;
+  jumpspeed = 4;
+  gravity = 1;
 
 type
   TWall = record
     x: integer;
     oy1,oy2: integer;
   end;
+  TGene = array[0..maxneurons-1] of real;
+  PGene = ^TGene;
   TActor = record
     p: TPoint;
+    g: TGene;
     gover: boolean;
     score: integer;
     input: array[0..1] of boolean;
     color: TColor;
+    fit: real;
   end;
+  TPopulos = array of TActor;
+  PPopulos = ^TPopulos;
 
   TForm1 = class(TForm)
     Panel1: TPanel;
@@ -33,8 +47,10 @@ type
     rb2: TRadioButton;
     rb3: TRadioButton;
     Timer2: TTimer;
-    cb1: TCheckBox;
+    drawSteps: TCheckBox;
     Edit1: TEdit;
+    speed: TTrackBar;
+    Label3: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -43,10 +59,11 @@ type
       Shift: TShiftState);
     procedure BitBtn1Click(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
+    procedure speedChange(Sender: TObject);
   private
     { Private declarations }
-    walls: array[0..3] of TWall;
-    act: array of TActor;
+    walls: array[0..numwalls-1] of TWall;
+    act: TPopulos;
     auto: boolean;
   public
     { Public declarations }
@@ -59,13 +76,13 @@ type
     procedure Draw;
     procedure TranslateKey(key: Word; state: boolean);
     procedure SolveTrad(id: integer);
+    procedure SolveNeat(id: integer);
+    function AlfaSelect(pop: PPopulos): TPopulos;
+    function Tournament(pop: PPopulos): TPopulos;
+    procedure Crossover(a,b: PGene; skip: integer; pts: integer);
+    procedure Mutate(skip: integer; prob: real);
+    procedure NeatNext;
   end;
-
-const
-  mindist = 100;
-  cellsize = 16;
-  jumpspeed = 4;
-  gravity = 1;
 
 var
   Form1: TForm1;
@@ -276,14 +293,29 @@ end;
 procedure TForm1.Timer2Timer(Sender: TObject);
 var
   I: Integer;
+  over: boolean;
 begin
+  over := true;
   for I := 0 to High(act) do
   begin
     if rb1.Checked then SolveTrad(I);
+    if rb2.Checked then SolveNeat(I);
     Step(I);
+    if not act[I].gover then over := false;
   end;    // for
+  
   StepField;
-  if cb1.Checked then Draw;
+  if drawSteps.Checked then Draw;
+
+  if over then
+  begin
+    if rb2.Checked then NeatNext
+    else
+    begin
+      Timer2.Enabled := false;
+      ShowMessage('AI Game Over');
+    end;
+  end;
 end;
 
 procedure TForm1.SolveTrad(id: integer);
@@ -305,7 +337,7 @@ begin
       end;
       if (walls[I].x <= p.X) and (walls[I].x + cellsize >= p.X) then
       begin
-        mind := walls[I].x - p.X;
+        //mind := walls[I].x - p.X;
         nxt := I;
         break;
       end;
@@ -321,6 +353,52 @@ begin
     if p.Y <= jumpspeed then input[0] := false;
     if p.Y >= pb.ClientHeight - jumpspeed then input[1] := false;
   end;    // with
+end;
+
+procedure TForm1.SolveNeat(id: integer);
+begin
+  with act[id] do
+  begin
+    if gover then exit;
+      
+  end;    // with
+end;
+
+function TForm1.AlfaSelect(pop: PPopulos): TPopulos;
+begin
+
+end;
+
+function TForm1.Tournament(pop: PPopulos): TPopulos;
+begin
+
+end;
+
+procedure TForm1.Crossover(a, b: PGene; skip, pts: integer);
+begin
+
+end;
+
+procedure TForm1.Mutate(skip: integer; prob: real);
+begin
+
+end;
+
+procedure TForm1.NeatNext;
+begin
+
+end;
+
+procedure TForm1.speedChange(Sender: TObject);
+var
+  p: Integer;
+begin
+  p := speed.Max - speed.Position;
+  if p = 0 then
+  begin
+    // TODO
+  end else
+    Timer2.Interval := p * 10;
 end;
 
 end.

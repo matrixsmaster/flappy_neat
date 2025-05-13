@@ -3,7 +3,7 @@ object Form1: TForm1
   Top = 114
   Width = 426
   Height = 352
-  Caption = 'Flappy'
+  Caption = 'Flappy NEAT'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poDesktopCenter
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   OnKeyUp = FormKeyUp
@@ -29,6 +30,13 @@ object Form1: TForm1
     Width = 54
     Height = 13
     Caption = 'Num actors'
+  end
+  object Label3: TLabel
+    Left = 296
+    Top = 176
+    Width = 31
+    Height = 13
+    Caption = 'Speed'
   end
   object Panel1: TPanel
     Left = 8
@@ -117,7 +125,7 @@ object Form1: TForm1
       TabOrder = 2
     end
   end
-  object cb1: TCheckBox
+  object drawSteps: TCheckBox
     Left = 296
     Top = 152
     Width = 81
@@ -135,6 +143,15 @@ object Form1: TForm1
     TabOrder = 5
     OnKeyDown = FormKeyDown
     OnKeyUp = FormKeyUp
+  end
+  object speed: TTrackBar
+    Left = 288
+    Top = 192
+    Width = 129
+    Height = 33
+    Position = 5
+    TabOrder = 6
+    OnChange = speedChange
   end
   object Timer1: TTimer
     Enabled = False
