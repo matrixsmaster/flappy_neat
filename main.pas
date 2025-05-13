@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ImgList, ExtCtrls;
+  Dialogs, ImgList, ExtCtrls, StdCtrls;
 
 type
   TWall = record
@@ -17,6 +17,7 @@ type
     pb: TPaintBox;
     Timer1: TTimer;
     ImageList1: TImageList;
+    Label1: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -28,9 +29,12 @@ type
     keybd: array[0..65535] of boolean;
     walls: array[0..3] of TWall;
     pc: TPoint;
+    score: integer;
     gover: boolean;
   public
     { Public declarations }
+    procedure Reset;
+    procedure SetWall(idx,cx: integer);
     procedure GameOver;
     procedure Draw;
   end;
@@ -38,6 +42,8 @@ type
 const
   mindist = 100;
   cellsize = 16;
+  jumpspeed = 4;
+  gravity = 1;
 
 var
   Form1: TForm1;
@@ -47,30 +53,40 @@ implementation
 {$R *.dfm}
 
 procedure TForm1.FormCreate(Sender: TObject);
-var
-  I,cx: Integer;
 begin
   Randomize;
+  Reset;
+end;
+
+procedure TForm1.Reset;
+var
+  I: Integer;
+begin
   pc.X := pb.ClientWidth div 3;
   pc.Y := pb.ClientHeight div 2;
   gover := false;
+  score := 0;
+  SetWall(0,pb.ClientWidth);
+  for I := 1 to High(walls) do SetWall(I,0);
+  for I := 0 to High(keybd) do keybd[I] := false;
+end;
 
-  cx := pb.ClientWidth;
-  for I := 0 to High(walls) do
+procedure TForm1.SetWall(idx,cx: integer);
+var
+  I: Integer;
+begin
+  if cx > 0 then walls[idx].x := cx
+  else
   begin
-    if I > 0 then
-      walls[I].x := cx + random(pb.ClientWidth div 3) + mindist + cellsize
-    else
-      walls[I].x := cx;
-    walls[I].oy1 := random(pb.ClientHeight - cellsize*2);
-    walls[I].oy2 := walls[I].oy1 + cellsize*2;
-    cx := walls[I].x;
-  end;    // for
+    for I := 0 to High(walls) do
+    begin
+      if walls[I].x > cx then cx := walls[I].x;
+    end;    // for
+    walls[idx].x := cx + random(pb.ClientWidth div 3) + mindist + cellsize;
+  end;
 
-  for I := 0 to High(keybd) do
-  begin
-    keybd[I] := false;
-  end;    // for
+  walls[idx].oy1 := random(pb.ClientHeight - cellsize*2);
+  walls[idx].oy2 := walls[idx].oy1 + random(pb.ClientHeight - walls[idx].oy1 - cellsize*2) + cellsize*2;
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
@@ -93,14 +109,18 @@ begin
         exit;
       end;
     end;
+
     walls[I].x := walls[I].x - 1;
+    if walls[I].x < -cellsize then SetWall(I,0);
   end;    // for
 
-  if keybd[VK_UP] then pc.Y := pc.Y - 3
-  else if keybd[VK_DOWN] then pc.Y := pc.Y + 3
-  else pc.Y := pc.Y + 1;
-  
+  if keybd[VK_UP] then pc.Y := pc.Y - jumpspeed
+  else if keybd[VK_DOWN] then pc.Y := pc.Y + jumpspeed
+  else pc.Y := pc.Y + gravity;
+
   Draw;
+  Inc(score);
+  Label1.Caption := 'Score: '+IntToStr(score);
 end;
 
 procedure TForm1.FormKeyDown(Sender: TObject; var Key: Word;
@@ -121,7 +141,7 @@ begin
   gover := True;
   Timer1.Enabled := False;
   ShowMessage('Game over');
-  Draw;
+  Reset;
 end;
 
 procedure TForm1.Draw;

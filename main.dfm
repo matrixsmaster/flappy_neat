@@ -2,8 +2,8 @@ object Form1: TForm1
   Left = 192
   Top = 114
   Width = 322
-  Height = 343
-  Caption = 'Form1'
+  Height = 364
+  Caption = 'Flappy'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,9 +16,16 @@ object Form1: TForm1
   OnKeyUp = FormKeyUp
   PixelsPerInch = 96
   TextHeight = 13
-  object Panel1: TPanel
+  object Label1: TLabel
     Left = 8
     Top = 8
+    Width = 40
+    Height = 13
+    Caption = 'Score: 0'
+  end
+  object Panel1: TPanel
+    Left = 8
+    Top = 32
     Width = 297
     Height = 289
     BevelOuter = bvLowered
@@ -33,7 +40,7 @@ object Form1: TForm1
   end
   object Timer1: TTimer
     Enabled = False
-    Interval = 60
+    Interval = 50
     OnTimer = Timer1Timer
     Left = 24
     Top = 24
