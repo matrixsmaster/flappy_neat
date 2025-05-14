@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Spin, NEdit, Buttons;
+  Dialogs, StdCtrls, Spin, NEdit, Buttons, ExtCtrls, ComCtrls, XPMan, Grids;
 
 const
   numgenes = 26;
@@ -47,6 +47,18 @@ type
     NEdit2: TNEdit;
     Button8: TButton;
     BitBtn1: TBitBtn;
+    cb1: TCheckBox;
+    Button9: TButton;
+    lb1: TListBox;
+    TrackBar1: TTrackBar;
+    BitBtn2: TBitBtn;
+    BitBtn3: TBitBtn;
+    Timer1: TTimer;
+    Label13: TLabel;
+    sg: TStringGrid;
+    Button10: TButton;
+    XPManifest1: TXPManifest;
+    sd1: TSaveDialog;
     procedure FormActivate(Sender: TObject);
     procedure s1Change(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -59,8 +71,15 @@ type
     procedure Button4Click(Sender: TObject);
     procedure Button7Click(Sender: TObject);
     procedure Button8Click(Sender: TObject);
+    procedure Button9Click(Sender: TObject);
+    procedure TrackBar1Change(Sender: TObject);
+    procedure BitBtn2Click(Sender: TObject);
+    procedure BitBtn3Click(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
+    procedure Button10Click(Sender: TObject);
   private
     pop,next: TPool;
+    iter: Integer;
   public
     procedure Recalc;
     procedure RandomGenes(var g: TGenes);
@@ -104,12 +123,22 @@ begin
   for I := 0 to High(pop) do RandomGenes(pop[I]);
   Label7.Caption := 'New pop: ' + IntTostr(High(pop)+1);
   SetLength(next,0);
+  iter := 0;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   Randomize;
   pop := nil;
+  sg.Cells[1,0] := 'Pop';
+  sg.Cells[2,0] := 'El';
+  sg.Cells[3,0] := 'A';
+  sg.Cells[4,0] := 'B';
+  sg.Cells[5,0] := 'Mut';
+  sg.Cells[6,0] := 'Inv';
+  sg.Cells[7,0] := 'Splt';
+  sg.Cells[8,0] := 'Iter';
+  sg.Cells[0,1] := '1';
 end;
 
 procedure TForm1.RandomGenes(var g: TGenes);
@@ -156,8 +185,10 @@ var
 begin
   StepIt;
   arr := SortPop(@pop);
+  Inc(iter);
   Label8.Caption := 'Highest fit: ' + FloatToStrF(arr[0].f,ffFixed,2,0);
   Label9.Caption := GenesToString(arr[0]);
+  Label13.Caption := 'Iteration: ' + IntToStr(iter);
 
   next := nil;
   pop := nil;
@@ -189,6 +220,7 @@ function TForm1.GenesToString(g: TGenes): String;
 var
   I: Integer;
 begin
+  Result := '';
   for I := 0 to High(g.g) do
     Result := Result + Chr(g.g[I]);
 end;
@@ -282,6 +314,7 @@ end;
 
 procedure TForm1.Button6Click(Sender: TObject);
 begin
+  if cb1.Checked then Button9Click(Sender);
   pop := nil;
   pop := next;
   next := nil;
@@ -346,7 +379,7 @@ procedure TForm1.Button7Click(Sender: TObject);
 var
   I: Integer;
 begin
-  for I := 0 to High(next) do
+  for I := s2.Value to High(next) do
   begin
     if random <= NEdit1.Numb then
       next[I].g[random(numgenes)] := random(26) + Ord('A');
@@ -358,7 +391,7 @@ var
   I,ala,alb: Integer;
   x: byte;
 begin
-  for I := 0 to High(next) do
+  for I := s2.Value to High(next) do
   begin
     if random > NEdit2.Numb then continue;
     ala := random(numgenes);
@@ -367,6 +400,72 @@ begin
     next[I].g[ala] := next[I].g[alb];
     next[I].g[alb] := x;
   end;    // for
+end;
+
+procedure TForm1.Button9Click(Sender: TObject);
+var
+  I: Integer;
+begin
+  lb1.Clear;
+  for I := 0 to High(next) do
+    lb1.AddItem(GenesToString(next[I]),nil);
+end;
+
+procedure TForm1.TrackBar1Change(Sender: TObject);
+begin
+  Timer1.Interval := TrackBar1.Position;
+end;
+
+procedure TForm1.BitBtn2Click(Sender: TObject);
+begin
+  Timer1.Enabled := True;
+end;
+
+procedure TForm1.BitBtn3Click(Sender: TObject);
+begin
+  Timer1.Enabled := False;
+end;
+
+procedure TForm1.Timer1Timer(Sender: TObject);
+var
+  row: integer;
+begin
+  BitBtn1.Click;
+  if (pop <> nil) and (pop[0].f >= 26) then
+  begin
+    Timer1.Enabled := False;
+    row := sg.RowCount - 1;
+    sg.Cells[1,row] := IntToStr(s1.Value);
+    sg.Cells[2,row] := IntToStr(s2.Value);
+    sg.Cells[3,row] := IntToStr(s3.Value);
+    sg.Cells[4,row] := IntToStr(s4.Value);
+    sg.Cells[5,row] := FloatToStrF(NEdit1.Numb,ffFixed,2,2);
+    sg.Cells[6,row] := FloatToStrF(NEdit2.Numb,ffFixed,2,2);
+    sg.Cells[7,row] := IntToStr(s5.Value);
+    sg.Cells[8,row] := IntToStr(iter);
+    sg.RowCount := row + 2;
+  end;
+end;
+
+procedure TForm1.Button10Click(Sender: TObject);
+var
+  I,J: Integer;
+  f: TextFile;
+  s: string;
+begin
+  if not sd1.Execute then exit;
+  if sd1.FileName = '' then exit;
+  AssignFile(f,sd1.FileName);
+  Rewrite(f);
+  for I := 0 to sg.RowCount - 1 do
+  begin
+    s := '';
+    for J := 0 to sg.ColCount - 1 do
+      s := s + sg.Cells[J,I] + ';';
+    WriteLn(f,s);
+  end;    // for
+  CloseFile(f);
+  ShowMessage('Saved to ' + sd1.FileName);
 end;
 
 end.

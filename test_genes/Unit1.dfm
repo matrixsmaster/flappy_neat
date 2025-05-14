@@ -4,8 +4,8 @@ object Form1: TForm1
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'AlphaSelect Test'
-  ClientHeight = 296
-  ClientWidth = 456
+  ClientHeight = 337
+  ClientWidth = 785
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -101,6 +101,13 @@ object Form1: TForm1
     Width = 43
     Height = 13
     Caption = 'Inversion'
+  end
+  object Label13: TLabel
+    Left = 312
+    Top = 40
+    Width = 50
+    Height = 13
+    Caption = 'Iteration: 0'
   end
   object s1: TSpinEdit
     Left = 40
@@ -208,8 +215,8 @@ object Form1: TForm1
     Width = 57
     Height = 21
     TabOrder = 5
-    Text = '0.00999999977648258'
-    Numb = 0.009999999776482582
+    Text = '0.0500000007450581'
+    Numb = 0.050000000745058060
   end
   object Button6: TButton
     Left = 8
@@ -235,8 +242,8 @@ object Form1: TForm1
     Width = 57
     Height = 21
     TabOrder = 13
-    Text = '0.0500000007450581'
-    Numb = 0.050000000745058060
+    Text = '0.100000001490116'
+    Numb = 0.100000001490116100
   end
   object Button8: TButton
     Left = 128
@@ -256,5 +263,98 @@ object Form1: TForm1
     TabOrder = 15
     OnClick = BitBtn1Click
     Kind = bkRetry
+  end
+  object cb1: TCheckBox
+    Left = 312
+    Top = 8
+    Width = 81
+    Height = 17
+    Caption = 'Show next'
+    TabOrder = 16
+  end
+  object Button9: TButton
+    Left = 400
+    Top = 8
+    Width = 51
+    Height = 25
+    Caption = 'Now'
+    TabOrder = 17
+    OnClick = Button9Click
+  end
+  object lb1: TListBox
+    Left = 216
+    Top = 120
+    Width = 233
+    Height = 137
+    ItemHeight = 13
+    TabOrder = 18
+  end
+  object TrackBar1: TTrackBar
+    Left = 8
+    Top = 296
+    Width = 193
+    Height = 33
+    Max = 100
+    Min = 1
+    Position = 50
+    TabOrder = 19
+    OnChange = TrackBar1Change
+  end
+  object BitBtn2: TBitBtn
+    Left = 208
+    Top = 296
+    Width = 121
+    Height = 25
+    Caption = 'Start'
+    TabOrder = 20
+    OnClick = BitBtn2Click
+    Kind = bkAll
+  end
+  object BitBtn3: TBitBtn
+    Left = 336
+    Top = 296
+    Width = 113
+    Height = 25
+    Caption = 'Stop'
+    TabOrder = 21
+    OnClick = BitBtn3Click
+    Kind = bkNo
+  end
+  object sg: TStringGrid
+    Left = 456
+    Top = 8
+    Width = 321
+    Height = 281
+    ColCount = 9
+    DefaultColWidth = 32
+    RowCount = 2
+    TabOrder = 22
+  end
+  object Button10: TButton
+    Left = 456
+    Top = 296
+    Width = 321
+    Height = 25
+    Caption = 'Save as CSV'
+    TabOrder = 23
+    OnClick = Button10Click
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 50
+    OnTimer = Timer1Timer
+    Left = 224
+    Top = 128
+  end
+  object XPManifest1: TXPManifest
+    Left = 464
+    Top = 72
+  end
+  object sd1: TSaveDialog
+    DefaultExt = 'csv'
+    Filter = 'CSV Files|*.csv|All files|*.*'
+    Title = 'Save table as CSV'
+    Left = 496
+    Top = 72
   end
 end
