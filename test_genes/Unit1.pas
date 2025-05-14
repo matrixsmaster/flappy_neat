@@ -4,15 +4,18 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Spin, NEdit;
+  Dialogs, StdCtrls, Spin, NEdit, Buttons;
+
+const
+  numgenes = 26;
 
 type
-  TGene = record
-    g: array[0..25] of byte;
+  TGenes = record
+    g: array[0..numgenes-1] of byte;
     f: real;
   end;
-  PGene = ^TGene;
-  TPool = array of TGene;
+  PGenes = ^TGenes;
+  TPool = array of TGenes;
   PPool = ^TPool;
 
   TForm1 = class(TForm)
@@ -40,6 +43,10 @@ type
     NEdit1: TNEdit;
     Button6: TButton;
     Button7: TButton;
+    Label12: TLabel;
+    NEdit2: TNEdit;
+    Button8: TButton;
+    BitBtn1: TBitBtn;
     procedure FormActivate(Sender: TObject);
     procedure s1Change(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -47,15 +54,20 @@ type
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
+    procedure BitBtn1Click(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
+    procedure Button7Click(Sender: TObject);
+    procedure Button8Click(Sender: TObject);
   private
     pop,next: TPool;
   public
     procedure Recalc;
-    procedure RandomGene(var g: TGene);
+    procedure RandomGenes(var g: TGenes);
     function SortPop(src: PPool): TPool;
     procedure StepIt;
-    function GeneToString(g: TGene): String;
-    procedure Crossover(var a,b: TGene);
+    function GenesToString(g: TGenes): String;
+    procedure Crossover(var a,b: TGenes);
   end;
 
 var
@@ -89,7 +101,7 @@ var
   I: Integer;
 begin
   SetLength(pop,s1.Value);
-  for I := 0 to High(pop) do RandomGene(pop[I]);
+  for I := 0 to High(pop) do RandomGenes(pop[I]);
   Label7.Caption := 'New pop: ' + IntTostr(High(pop)+1);
   SetLength(next,0);
 end;
@@ -100,7 +112,7 @@ begin
   pop := nil;
 end;
 
-procedure TForm1.RandomGene(var g: TGene);
+procedure TForm1.RandomGenes(var g: TGenes);
 var
   I: Integer;
 begin
@@ -113,10 +125,10 @@ end;
 
 function FitCompare(a,b: Pointer): Integer;
 var
-  af,bf: PGene;
+  af,bf: PGenes;
 begin
-  af := PGene(a);
-  bf := PGene(b);
+  af := PGenes(a);
+  bf := PGenes(b);
   if af.f < bf.f then Result := 1
   else if af.f > bf.f then Result := -1
   else Result := 0;
@@ -133,7 +145,7 @@ begin
   lst.Sort(@FitCompare);
   SetLength(Result,lst.Count);
   for I := 0 to lst.Count - 1 do
-    Result[I] := PGene(lst.Items[I])^;
+    Result[I] := PGenes(lst.Items[I])^;
   lst.Free;
 end;
 
@@ -145,7 +157,7 @@ begin
   StepIt;
   arr := SortPop(@pop);
   Label8.Caption := 'Highest fit: ' + FloatToStrF(arr[0].f,ffFixed,2,0);
-  Label9.Caption := GeneToString(arr[0]);
+  Label9.Caption := GenesToString(arr[0]);
 
   next := nil;
   pop := nil;
@@ -173,7 +185,7 @@ begin
   end;    // for
 end;
 
-function TForm1.GeneToString(g: TGene): String;
+function TForm1.GenesToString(g: TGenes): String;
 var
   I: Integer;
 begin
@@ -184,7 +196,7 @@ end;
 procedure TForm1.Button3Click(Sender: TObject);
 var
   I,J,n,k: Integer;
-  pa,pb: TGene;
+  pa,pb: TGenes;
 begin
   n := s3.Value;
   k := High(next) + 1;
@@ -205,12 +217,12 @@ begin
   Label7.Caption := 'New pop: ' + IntTostr(High(next)+1);
 end;
 
-procedure TForm1.Crossover(var a, b: TGene);
+procedure TForm1.Crossover(var a, b: TGenes);
 var
   I,J,K,xv: Integer;
   fnd,flip: boolean;
   pts: array of integer;
-  ra,rb: TGene;
+  ra,rb: TGenes;
 begin
   SetLength(pts,s5.Value);
   for I := 0 to High(pts) do pts[I] := 99;
@@ -273,6 +285,88 @@ begin
   pop := nil;
   pop := next;
   next := nil;
+end;
+
+procedure TForm1.BitBtn1Click(Sender: TObject);
+begin
+  Button2Click(Sender);
+  Button3Click(Sender);
+  Button4Click(Sender);
+  Button5Click(Sender);
+  Button7Click(Sender);
+  Button8Click(Sender);
+  Button6Click(Sender);
+end;
+
+procedure TForm1.Button5Click(Sender: TObject);
+var
+  I,n: Integer;
+begin
+  n := High(next);
+  SetLength(next,s1.Value);
+  for I := n+1 to High(next) do
+  begin
+    RandomGenes(next[I]);
+  end;    // for
+  Label7.Caption := 'New pop: ' + IntTostr(High(next)+1);
+end;
+
+procedure TForm1.Button4Click(Sender: TObject);
+var
+  I: Integer;
+  k,n,pk,ia,ib: integer;
+  pa,pb: TGenes;
+begin
+  k := High(next) + 1;
+  n := (s1.Value - k) div 2 * 2;
+  SetLength(next,k+n);
+  pk := s2.Value + s3.Value * s4.Value * 2;
+
+  for I := 0 to (n div 2) - 1 do
+  begin
+    ia := random(High(pop)+1-pk) + pk;
+    ib := random(High(pop)+1-pk) + pk;
+    if pop[ia].f > pop[ib].f then pa := pop[ia]
+    else pa := pop[ib];
+    ia := random(High(pop)+1-pk) + pk;
+    ib := random(High(pop)+1-pk) + pk;
+    if pop[ia].f > pop[ib].f then pb := pop[ia]
+    else pb := pop[ib];
+
+    Crossover(pa,pb);
+    next[k] := pa;
+    next[k+1] := pb;
+    Inc(k,2);
+  end;    // for
+
+  Label7.Caption := 'New pop: ' + IntTostr(High(next)+1);
+end;
+
+procedure TForm1.Button7Click(Sender: TObject);
+var
+  I: Integer;
+begin
+  for I := 0 to High(next) do
+  begin
+    if random <= NEdit1.Numb then
+      next[I].g[random(numgenes)] := random(26) + Ord('A');
+  end;    // for
+end;
+
+procedure TForm1.Button8Click(Sender: TObject);
+var
+  I,ala,alb: Integer;
+  x: byte;
+begin
+  for I := 0 to High(next) do
+  begin
+    if random > NEdit2.Numb then continue;
+    ala := random(numgenes);
+    alb := random(numgenes);
+    x := next[I].g[ala];
+    next[I].g[ala] := next[I].g[alb];
+    next[I].g[alb] := x;
+  end;    // for
 end;
 
 end.

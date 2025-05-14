@@ -1,11 +1,11 @@
 object Form1: TForm1
   Left = 192
   Top = 114
-  Width = 464
-  Height = 304
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'AlphaSelect Test'
+  ClientHeight = 296
+  ClientWidth = 456
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -95,6 +95,13 @@ object Form1: TForm1
     Height = 13
     Caption = 'Mutation'
   end
+  object Label12: TLabel
+    Left = 8
+    Top = 232
+    Width = 43
+    Height = 13
+    Caption = 'Inversion'
+  end
   object s1: TSpinEdit
     Left = 40
     Top = 8
@@ -173,6 +180,7 @@ object Form1: TForm1
     Height = 25
     Caption = 'Tournament'
     TabOrder = 9
+    OnClick = Button4Click
   end
   object Button5: TButton
     Left = 128
@@ -181,6 +189,7 @@ object Form1: TForm1
     Height = 25
     Caption = 'Generate'
     TabOrder = 10
+    OnClick = Button5Click
   end
   object s5: TSpinEdit
     Left = 248
@@ -199,12 +208,12 @@ object Form1: TForm1
     Width = 57
     Height = 21
     TabOrder = 5
-    Text = '0.01'
+    Text = '0.00999999977648258'
     Numb = 0.009999999776482582
   end
   object Button6: TButton
     Left = 8
-    Top = 232
+    Top = 264
     Width = 195
     Height = 25
     Caption = 'Turn'
@@ -218,5 +227,34 @@ object Form1: TForm1
     Height = 25
     Caption = 'Mutate'
     TabOrder = 11
+    OnClick = Button7Click
+  end
+  object NEdit2: TNEdit
+    Left = 56
+    Top = 232
+    Width = 57
+    Height = 21
+    TabOrder = 13
+    Text = '0.0500000007450581'
+    Numb = 0.050000000745058060
+  end
+  object Button8: TButton
+    Left = 128
+    Top = 232
+    Width = 75
+    Height = 25
+    Caption = 'Swap/invert'
+    TabOrder = 14
+    OnClick = Button8Click
+  end
+  object BitBtn1: TBitBtn
+    Left = 208
+    Top = 264
+    Width = 241
+    Height = 25
+    Caption = 'Full cycle'
+    TabOrder = 15
+    OnClick = BitBtn1Click
+    Kind = bkRetry
   end
 end
