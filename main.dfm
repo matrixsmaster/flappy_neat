@@ -107,6 +107,7 @@ object Form1: TForm1
       Width = 278
       Height = 278
       Align = alClient
+      OnMouseDown = pbMouseDown
     end
   end
   object numAct: TSpinEdit
@@ -196,6 +197,7 @@ object Form1: TForm1
     Top = 8
     Width = 25
     Height = 21
+    ReadOnly = True
     TabOrder = 5
     OnKeyDown = FormKeyDown
     OnKeyUp = FormKeyUp
@@ -215,6 +217,13 @@ object Form1: TForm1
     Width = 113
     Height = 113
     TabOrder = 7
+    object pb2: TPaintBox
+      Left = 1
+      Top = 1
+      Width = 111
+      Height = 111
+      Align = alClient
+    end
   end
   object kMutate: TNEdit
     Left = 464
@@ -222,6 +231,8 @@ object Form1: TForm1
     Width = 49
     Height = 21
     TabOrder = 8
+    Text = '0.15'
+    Numb = 0.150000005960464500
   end
   object kInvert: TNEdit
     Left = 464
@@ -229,6 +240,8 @@ object Form1: TForm1
     Width = 49
     Height = 21
     TabOrder = 9
+    Text = '0.1'
+    Numb = 0.100000001490116100
   end
   object xMin: TNEdit
     Left = 464
@@ -236,6 +249,7 @@ object Form1: TForm1
     Width = 49
     Height = 21
     TabOrder = 10
+    Text = '0'
   end
   object xMax: TNEdit
     Left = 464
@@ -243,46 +257,58 @@ object Form1: TForm1
     Width = 49
     Height = 21
     TabOrder = 11
+    Text = '2'
+    Numb = 2.000000000000000000
   end
   object nElite: TSpinEdit
     Left = 464
     Top = 80
     Width = 49
     Height = 22
-    MaxValue = 0
+    MaxValue = 9999
     MinValue = 0
     TabOrder = 12
-    Value = 0
+    Value = 1
   end
   object nAlpha: TSpinEdit
     Left = 464
     Top = 104
     Width = 49
     Height = 22
-    MaxValue = 0
+    MaxValue = 9999
     MinValue = 0
     TabOrder = 13
-    Value = 0
+    Value = 8
   end
   object nBeta: TSpinEdit
     Left = 464
     Top = 128
     Width = 49
     Height = 22
-    MaxValue = 0
+    MaxValue = 9999
     MinValue = 0
     TabOrder = 14
-    Value = 0
+    Value = 5
   end
   object nSplits: TSpinEdit
     Left = 464
     Top = 200
     Width = 49
     Height = 22
-    MaxValue = 0
+    MaxValue = 99
     MinValue = 0
     TabOrder = 15
-    Value = 0
+    Value = 3
+  end
+  object BitBtn2: TBitBtn
+    Left = 296
+    Top = 168
+    Width = 113
+    Height = 25
+    Caption = 'Stop'
+    TabOrder = 16
+    OnClick = BitBtn2Click
+    Kind = bkAbort
   end
   object Timer1: TTimer
     Enabled = False

@@ -14,13 +14,17 @@ const
   cellsize = 16;
   jumpspeed = 4;
   gravity = 1;
+  fixinputs = 4;
+  fixouts = 2;
+  epsilon = 0.01;
+  minsigma = 0.1;
 
 type
   TWall = record
     x: integer;
     oy1,oy2: integer;
   end;
-  TGenes = array[0..maxneurons-1] of real;
+  TGenes = array[0..(maxneurons*maxneurons)-1] of real;
   PGenes = ^TGenes;
   TActor = record
     p: TPoint;
@@ -30,6 +34,7 @@ type
     input: array[0..1] of boolean;
     color: TColor;
   end;
+  PActor = ^TActor;
   TPopulos = array of TActor;
   PPopulos = ^TPopulos;
 
@@ -68,6 +73,8 @@ type
     nAlpha: TSpinEdit;
     nBeta: TSpinEdit;
     nSplits: TSpinEdit;
+    pb2: TPaintBox;
+    BitBtn2: TBitBtn;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -77,11 +84,15 @@ type
     procedure BitBtn1Click(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure speedChange(Sender: TObject);
+    procedure BitBtn2Click(Sender: TObject);
+    procedure pbMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     { Private declarations }
     walls: array[0..numwalls-1] of TWall;
     act,next: TPopulos;
     auto: boolean;
+    iter: integer;
   public
     { Public declarations }
     procedure Reset(id: integer);
@@ -101,7 +112,10 @@ type
     procedure Crossover(var a, b: TGenes; splits: integer);
     procedure Mutate(skip: integer; prob: real);
     procedure Invert(skip: integer; prob: real);
+    procedure FillRandom;
+    function SortPop(src: PPopulos): TPopulos;
     procedure NeatNext;
+    procedure DrawNetwork(g: PGenes);
   end;
 
 var
@@ -309,6 +323,7 @@ begin
   end;    // for
   SetLength(next,0);
   ResetField;
+  iter := 0;
   Timer2.Enabled := true;
 end;
 
@@ -374,6 +389,9 @@ begin
 
     if p.Y <= jumpspeed then input[0] := false;
     if p.Y >= pb.ClientHeight - jumpspeed then input[1] := false;
+
+    Inc(score);
+    Label1.Caption := 'Score: ' + IntToStr(score);
   end;    // with
 end;
 
@@ -521,7 +539,7 @@ begin
   for I := skip to High(next) do
   begin
     if random <= prob then
-      next[I].g[random(maxneurons)] := random(26) + Ord('A');
+      next[I].g[random(High(next[I].g)+1)] := RandomGene;
   end;    // for
 end;
 
@@ -533,17 +551,78 @@ begin
   for I := skip to High(next) do
   begin
     if random > prob then continue;
-    ala := random(maxneurons);
-    alb := random(maxneurons);
+    ala := random(High(next[I].g)+1);
+    alb := random(High(next[I].g)+1);
     x := next[I].g[ala];
     next[I].g[ala] := next[I].g[alb];
     next[I].g[alb] := x;
   end;    // for
 end;
 
-procedure TForm1.NeatNext;
+procedure TForm1.FillRandom;
+var
+  I,n: Integer;
 begin
+  n := High(next);
+  SetLength(next,numAct.Value);
+  for I := n+1 to High(next) do RandomGenes(next[I].g);
+end;
 
+function FitCompare(a,b: Pointer): Integer;
+var
+  af,bf: PActor;
+begin
+  af := PActor(a);
+  bf := PActor(b);
+  if af.score < bf.score then Result := 1
+  else if af.score > bf.score then Result := -1
+  else Result := 0;
+end;
+
+function TForm1.SortPop(src: PPopulos): TPopulos;
+var
+  I: Integer;
+  lst: TList;
+begin
+  lst := TList.Create;
+  for I := 0 to High(src^) do
+    lst.Add(@(src^[I]));
+  lst.Sort(@FitCompare);
+  SetLength(Result,lst.Count);
+  for I := 0 to lst.Count - 1 do
+    Result[I] := PActor(lst.Items[I])^;
+  lst.Free;
+end;
+
+procedure TForm1.NeatNext;
+var
+  I: Integer;
+  arr: TPopulos;
+begin
+  Inc(iter);
+  arr := SortPop(@act);
+  Label1.Caption := 'Best score: ' + IntToStr(arr[0].score);
+  Label3.Caption := 'Iteration: ' + IntToStr(iter);
+  DrawNetwork(@(arr[0].g));
+
+  next := nil;
+  act := nil;
+  act := arr;
+  SetLength(next,nElite.Value);
+  for I := 0 to nElite.Value-1 do next[I] := arr[I];
+
+  AlphaSelect;
+  Tournament;
+  FillRandom;
+  Mutate(nElite.Value,kMutate.Numb);
+  Invert(nElite.Value,kInvert.Numb);
+
+  act := nil;
+  act := next;
+  next := nil;
+
+  for I := 0 to High(act) do Reset(I);
+  ResetField;
 end;
 
 procedure TForm1.speedChange(Sender: TObject);
@@ -556,6 +635,95 @@ begin
     // TODO
   end else
     Timer2.Interval := p * 10;
+end;
+
+procedure TForm1.DrawNetwork(g: PGenes);
+var
+  i,j,cx,cy,hs: Integer;
+  pts: array[0..maxneurons-1] of TPoint;
+begin
+  with pb2.Canvas do
+  begin
+    Brush.Style := bsSolid;
+    Brush.Color := clWhite;
+    Pen.Color := clBlack;
+    Pen.Style := psSolid;
+    Pen.Width := 1;
+    FillRect(ClipRect);
+  end;    // with
+
+  hs := cellsize div 2;
+  cx := hs;
+  cy := hs;
+  for i := 0 to maxneurons-1 do
+  begin
+    if i < fixinputs then
+    begin
+      pb2.Canvas.Brush.Color := clGreen;
+    end else if i+fixouts >= maxneurons then
+    begin
+      pb2.Canvas.Brush.Color := clRed;
+    end else
+    begin
+      if i mod fixinputs = 0 then
+      begin
+        cx := cx + cellsize * 2;
+        cy := hs;
+      end;
+      if abs(g[maxneurons*i]) < minsigma then
+        pb2.Canvas.Brush.Color := clWhite
+      else
+        pb2.Canvas.Brush.Color := clBlue;
+    end;
+
+    pb2.Canvas.Ellipse(cx-hs,cy-hs,cx+hs,cy+hs);
+    pts[i].X := cx;
+    pts[i].Y := cy;
+
+    cy := cy + cellsize * 2;
+  end;    // for
+
+  pb2.Canvas.Pen.Width := 2;
+  for i := 0 to maxneurons-1 do
+  begin
+    if abs(g[maxneurons*i]) < epsilon then continue;
+    for j := 0 to maxneurons-1 do
+    begin
+      if i = j then continue;
+      if (j < fixinputs) or (j+fixouts >= maxneurons) then continue;
+        
+      with pb2.Canvas do
+      begin
+        MoveTo(pts[i].X,pts[i].Y);
+        LineTo(pts[j].X,pts[j].Y);
+      end;    // with
+    end;    // for
+  end;
+end;
+
+procedure TForm1.BitBtn2Click(Sender: TObject);
+begin
+  Timer1.Enabled := False;
+  Timer2.Enabled := False;
+  auto := False;
+end;
+
+procedure TForm1.pbMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  i,hs: integer;
+begin
+  //X := X - pb.Left;
+  //Y := Y - pb.Top;
+  hs := cellsize div 2;
+  for I := 0 to High(act) do
+  begin
+    if (X >= act[i].p.X-hs) and (X <= act[i].p.X+hs) and (Y >= act[i].p.Y-hs) and (Y <= act[i].p.Y+hs) then
+    begin
+      DrawNetwork(@(act[i].g));
+      exit;
+    end;
+  end;    // for
 end;
 
 end.
