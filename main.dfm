@@ -1,8 +1,8 @@
 object Form1: TForm1
   Left = 192
   Top = 114
-  Width = 426
-  Height = 352
+  Width = 562
+  Height = 355
   Caption = 'Flappy NEAT'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -33,10 +33,66 @@ object Form1: TForm1
   end
   object Label3: TLabel
     Left = 296
-    Top = 176
-    Width = 31
+    Top = 152
+    Width = 50
     Height = 13
-    Caption = 'Speed'
+    Caption = 'Iteration: 0'
+  end
+  object Label4: TLabel
+    Left = 424
+    Top = 80
+    Width = 20
+    Height = 13
+    Caption = 'Elite'
+  end
+  object Label5: TLabel
+    Left = 424
+    Top = 104
+    Width = 27
+    Height = 13
+    Caption = 'Alpha'
+  end
+  object Label6: TLabel
+    Left = 424
+    Top = 128
+    Width = 22
+    Height = 13
+    Caption = 'Beta'
+  end
+  object Label7: TLabel
+    Left = 424
+    Top = 152
+    Width = 33
+    Height = 13
+    Caption = 'Mutate'
+  end
+  object Label8: TLabel
+    Left = 424
+    Top = 176
+    Width = 27
+    Height = 13
+    Caption = 'Invert'
+  end
+  object Label9: TLabel
+    Left = 424
+    Top = 200
+    Width = 25
+    Height = 13
+    Caption = 'Splits'
+  end
+  object Label10: TLabel
+    Left = 424
+    Top = 224
+    Width = 32
+    Height = 13
+    Caption = 'MinVal'
+  end
+  object Label11: TLabel
+    Left = 424
+    Top = 248
+    Width = 35
+    Height = 13
+    Caption = 'MaxVal'
   end
   object Panel1: TPanel
     Left = 8
@@ -126,8 +182,8 @@ object Form1: TForm1
     end
   end
   object drawSteps: TCheckBox
-    Left = 296
-    Top = 152
+    Left = 424
+    Top = 48
     Width = 81
     Height = 17
     Caption = 'Draw steps'
@@ -145,13 +201,88 @@ object Form1: TForm1
     OnKeyUp = FormKeyUp
   end
   object speed: TTrackBar
-    Left = 288
-    Top = 192
+    Left = 416
+    Top = 8
     Width = 129
     Height = 33
     Position = 5
     TabOrder = 6
     OnChange = speedChange
+  end
+  object Panel2: TPanel
+    Left = 296
+    Top = 200
+    Width = 113
+    Height = 113
+    TabOrder = 7
+  end
+  object kMutate: TNEdit
+    Left = 464
+    Top = 152
+    Width = 49
+    Height = 21
+    TabOrder = 8
+  end
+  object kInvert: TNEdit
+    Left = 464
+    Top = 176
+    Width = 49
+    Height = 21
+    TabOrder = 9
+  end
+  object xMin: TNEdit
+    Left = 464
+    Top = 224
+    Width = 49
+    Height = 21
+    TabOrder = 10
+  end
+  object xMax: TNEdit
+    Left = 464
+    Top = 248
+    Width = 49
+    Height = 21
+    TabOrder = 11
+  end
+  object nElite: TSpinEdit
+    Left = 464
+    Top = 80
+    Width = 49
+    Height = 22
+    MaxValue = 0
+    MinValue = 0
+    TabOrder = 12
+    Value = 0
+  end
+  object nAlpha: TSpinEdit
+    Left = 464
+    Top = 104
+    Width = 49
+    Height = 22
+    MaxValue = 0
+    MinValue = 0
+    TabOrder = 13
+    Value = 0
+  end
+  object nBeta: TSpinEdit
+    Left = 464
+    Top = 128
+    Width = 49
+    Height = 22
+    MaxValue = 0
+    MinValue = 0
+    TabOrder = 14
+    Value = 0
+  end
+  object nSplits: TSpinEdit
+    Left = 464
+    Top = 200
+    Width = 49
+    Height = 22
+    MaxValue = 0
+    MinValue = 0
+    TabOrder = 15
+    Value = 0
   end
   object Timer1: TTimer
     Enabled = False

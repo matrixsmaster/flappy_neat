@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ImgList, ExtCtrls, StdCtrls, Spin, Buttons, Grids, ComCtrls;
+  Dialogs, ImgList, ExtCtrls, StdCtrls, Spin, Buttons, Grids, ComCtrls,
+  NEdit;
 
 const
   numwalls = 4;
@@ -19,16 +20,15 @@ type
     x: integer;
     oy1,oy2: integer;
   end;
-  TGene = array[0..maxneurons-1] of real;
-  PGene = ^TGene;
+  TGenes = array[0..maxneurons-1] of real;
+  PGenes = ^TGenes;
   TActor = record
     p: TPoint;
-    g: TGene;
+    g: TGenes;
     gover: boolean;
     score: integer;
     input: array[0..1] of boolean;
     color: TColor;
-    fit: real;
   end;
   TPopulos = array of TActor;
   PPopulos = ^TPopulos;
@@ -51,6 +51,23 @@ type
     Edit1: TEdit;
     speed: TTrackBar;
     Label3: TLabel;
+    Label4: TLabel;
+    Panel2: TPanel;
+    Label5: TLabel;
+    Label6: TLabel;
+    Label7: TLabel;
+    Label8: TLabel;
+    Label9: TLabel;
+    Label10: TLabel;
+    Label11: TLabel;
+    kMutate: TNEdit;
+    kInvert: TNEdit;
+    xMin: TNEdit;
+    xMax: TNEdit;
+    nElite: TSpinEdit;
+    nAlpha: TSpinEdit;
+    nBeta: TSpinEdit;
+    nSplits: TSpinEdit;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -63,7 +80,7 @@ type
   private
     { Private declarations }
     walls: array[0..numwalls-1] of TWall;
-    act: TPopulos;
+    act,next: TPopulos;
     auto: boolean;
   public
     { Public declarations }
@@ -77,10 +94,13 @@ type
     procedure TranslateKey(key: Word; state: boolean);
     procedure SolveTrad(id: integer);
     procedure SolveNeat(id: integer);
-    function AlfaSelect(pop: PPopulos): TPopulos;
-    function Tournament(pop: PPopulos): TPopulos;
-    procedure Crossover(a,b: PGene; skip: integer; pts: integer);
+    function RandomGene: real;
+    procedure RandomGenes(var g: TGenes);
+    procedure AlphaSelect;
+    procedure Tournament;
+    procedure Crossover(var a, b: TGenes; splits: integer);
     procedure Mutate(skip: integer; prob: real);
+    procedure Invert(skip: integer; prob: real);
     procedure NeatNext;
   end;
 
@@ -285,7 +305,9 @@ begin
   begin
     Reset(I);
     act[I].color := random($FFFFFF);
+    RandomGenes(act[I].g);
   end;    // for
+  SetLength(next,0);
   ResetField;
   Timer2.Enabled := true;
 end;
@@ -364,24 +386,159 @@ begin
   end;    // with
 end;
 
-function TForm1.AlfaSelect(pop: PPopulos): TPopulos;
+function TForm1.RandomGene: real;
+var
+  d: real;
 begin
-
+  d := xMax.Numb - xMin.Numb;
+  Result := random * d + xMin.Numb;
 end;
 
-function TForm1.Tournament(pop: PPopulos): TPopulos;
+procedure TForm1.RandomGenes(var g: TGenes);
+var
+  I: Integer;
 begin
-
+  for I := 0 to High(g) do g[I] := RandomGene;
 end;
 
-procedure TForm1.Crossover(a, b: PGene; skip, pts: integer);
+procedure TForm1.AlphaSelect;
+var
+  I,J,n,k: Integer;
+  pa,pb: TActor;
 begin
+  n := nAlpha.Value;
+  k := High(next) + 1;
+  SetLength(next,k+nAlpha.Value*nBeta.Value*2);
+  for I := 0 to nAlpha.Value-1 do
+  begin
+    for J := 0 to nBeta.Value-1 do
+    begin
+      pa := act[I];
+      pb := act[n];
+      Inc(n);
+      Crossover(pa.g,pb.g,nSplits.Value);
+      next[k] := pa;
+      next[k+1] := pb;
+      Inc(k,2);
+    end;    // for
+  end;    // for
+end;
 
+procedure TForm1.Tournament;
+var
+  I: Integer;
+  k,n,pk,ia,ib: integer;
+  pa,pb: TActor;
+begin
+  k := High(next) + 1;
+  n := (numAct.Value - k) div 2 * 2;
+  SetLength(next,k+n);
+  pk := nElite.Value + nAlpha.Value * nBeta.Value * 2;
+
+  for I := 0 to (n div 2) - 1 do
+  begin
+    ia := random(High(act)+1-pk) + pk;
+    ib := random(High(act)+1-pk) + pk;
+    if act[ia].score > act[ib].score then pa := act[ia]
+    else pa := act[ib];
+    ia := random(High(act)+1-pk) + pk;
+    ib := random(High(act)+1-pk) + pk;
+    if act[ia].score > act[ib].score then pb := act[ia]
+    else pb := act[ib];
+
+    Crossover(pa.g,pb.g,nSplits.Value);
+    next[k] := pa;
+    next[k+1] := pb;
+    Inc(k,2);
+  end;    // for
+end;
+
+procedure TForm1.Crossover(var a, b: TGenes; splits: integer);
+var
+  I,J,K,xv: Integer;
+  fnd,flip: boolean;
+  pts: array of integer;
+  ra,rb: TGenes;
+begin
+  SetLength(pts,splits);
+  for I := 0 to High(pts) do pts[I] := 99;
+  for I := 0 to High(pts) do
+  begin
+    for J := 0 to 1000 do
+    begin
+      xv := random(splits);
+      fnd := false;
+      for K := 0 to High(pts) do
+      begin
+        if pts[K] = xv then
+        begin
+          fnd := true;
+          break;
+        end;
+      end;    // for
+      if not fnd then break;
+    end;    // for
+
+    for J := 0 to High(pts) do
+    begin
+      if pts[J] > xv then
+      begin
+        for K := J to High(pts)-1 do pts[K+1] := pts[K];
+        pts[J] := xv;
+        break;
+      end;
+    end;    // for
+  end;    // for
+
+  flip := false;
+  K := 0;
+  for I := 0 to High(a) do
+  begin
+    if I = pts[K] then
+    begin
+      Inc(K);
+      flip := not flip;
+    end;
+    if not flip then
+    begin
+      ra[I] := a[I];
+      rb[I] := b[I];
+    end else
+    begin
+      ra[I] := b[I];
+      rb[I] := a[I];
+    end;
+  end;    // for
+
+  a := ra;
+  b := rb;
 end;
 
 procedure TForm1.Mutate(skip: integer; prob: real);
+var
+  I: Integer;
 begin
+  for I := skip to High(next) do
+  begin
+    if random <= prob then
+      next[I].g[random(maxneurons)] := random(26) + Ord('A');
+  end;    // for
+end;
 
+procedure TForm1.Invert(skip: integer; prob: real);
+var
+  I,ala,alb: Integer;
+  x: real;
+begin
+  for I := skip to High(next) do
+  begin
+    if random > prob then continue;
+    ala := random(maxneurons);
+    alb := random(maxneurons);
+    x := next[I].g[ala];
+    next[I].g[ala] := next[I].g[alb];
+    next[I].g[alb] := x;
+  end;    // for
 end;
 
 procedure TForm1.NeatNext;
