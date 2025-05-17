@@ -1,9 +1,11 @@
 object Form1: TForm1
   Left = 192
   Top = 114
-  Width = 562
-  Height = 355
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
   Caption = 'Flappy NEAT'
+  ClientHeight = 321
+  ClientWidth = 554
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -118,7 +120,7 @@ object Form1: TForm1
     MaxValue = 9999
     MinValue = 1
     TabOrder = 1
-    Value = 10
+    Value = 100
   end
   object BitBtn1: TBitBtn
     Left = 296
@@ -231,7 +233,7 @@ object Form1: TForm1
     Width = 49
     Height = 21
     TabOrder = 8
-    Text = '0.15'
+    Text = '0.150000005960464'
     Numb = 0.150000005960464500
   end
   object kInvert: TNEdit
@@ -240,7 +242,7 @@ object Form1: TForm1
     Width = 49
     Height = 21
     TabOrder = 9
-    Text = '0.1'
+    Text = '0.100000001490116'
     Numb = 0.100000001490116100
   end
   object xMin: TNEdit

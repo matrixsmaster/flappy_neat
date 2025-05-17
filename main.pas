@@ -18,12 +18,14 @@ const
   fixouts = 2;
   epsilon = 0.01;
   minsigma = 0.1;
+  powmult = 1.0;
 
 type
   TWall = record
     x: integer;
     oy1,oy2: integer;
   end;
+  TNNInput = (NNPosY, NNDist, NNOpenY0, NNOpenY1);
   TGenes = array[0..(maxneurons*maxneurons)-1] of real;
   PGenes = ^TGenes;
   TActor = record
@@ -33,6 +35,7 @@ type
     score: integer;
     input: array[0..1] of boolean;
     color: TColor;
+    axons: array[0..maxneurons-1] of real;
   end;
   PActor = ^TActor;
   TPopulos = array of TActor;
@@ -103,6 +106,7 @@ type
     procedure GameOver(id: integer);
     procedure Draw;
     procedure TranslateKey(key: Word; state: boolean);
+    function NextWall(p: TPoint): integer;
     procedure SolveTrad(id: integer);
     procedure SolveNeat(id: integer);
     function RandomGene: real;
@@ -116,12 +120,15 @@ type
     function SortPop(src: PPopulos): TPopulos;
     procedure NeatNext;
     procedure DrawNetwork(g: PGenes);
+    procedure NeuralEval(a: PActor);
   end;
 
 var
   Form1: TForm1;
 
 implementation
+
+uses Math;
 
 {$R *.dfm}
 
@@ -154,7 +161,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(walls) do walls[I].x := 0;
-  SetWall(0,pb.ClientWidth);
+  SetWall(0,pb.ClientWidth - random(pb.ClientWidth div 3));
   for I := 1 to High(walls) do SetWall(I,0);
 end;
 
@@ -275,6 +282,7 @@ begin
     begin
       with act[I] do
       begin
+        if gover then continue;
         Brush.Color := color;
         Ellipse(p.X,p.Y,p.X+cellsize,p.Y+cellsize);
       end;    // with
@@ -330,9 +338,12 @@ end;
 procedure TForm1.Timer2Timer(Sender: TObject);
 var
   I: Integer;
-  over: boolean;
+  over,rest: boolean;
 begin
   over := true;
+  rest := true;
+  Timer2.Enabled := false;
+
   for I := 0 to High(act) do
   begin
     if rb1.Checked then SolveTrad(I);
@@ -349,37 +360,43 @@ begin
     if rb2.Checked then NeatNext
     else
     begin
-      Timer2.Enabled := false;
+      rest := false;
       ShowMessage('AI Game Over');
     end;
   end;
+
+  Timer2.Enabled := rest;
+end;
+
+function TForm1.NextWall(p: TPoint): integer;
+var
+  I,mind: Integer;
+begin
+  Result := -1;
+  mind := pb.ClientWidth;
+  for I := 0 to High(walls) do
+  begin
+    if (walls[I].x > p.X) and (walls[I].x - p.X < mind) then
+    begin
+      mind := walls[I].x - p.X;
+      Result := I;
+    end;
+    if (walls[I].x <= p.X) and (walls[I].x + cellsize >= p.X) then
+    begin
+      //mind := walls[I].x - p.X;
+      Result := I;
+      exit;
+    end;
+  end;    // for
 end;
 
 procedure TForm1.SolveTrad(id: integer);
 var
-  I,mind,nxt: Integer;
-  mp,ou: integer;
+  nxt,mp,ou: integer;
 begin
-  mind := pb.ClientWidth;
-  nxt := -1;
-
   with act[id] do
   begin
-    for I := 0 to High(walls) do
-    begin
-      if (walls[I].x > p.X) and (walls[I].x - p.X < mind) then
-      begin
-        mind := walls[I].x - p.X;
-        nxt := I;
-      end;
-      if (walls[I].x <= p.X) and (walls[I].x + cellsize >= p.X) then
-      begin
-        //mind := walls[I].x - p.X;
-        nxt := I;
-        break;
-      end;
-    end;    // for
-
+    nxt := NextWall(p);
     if nxt < 0 then mp := pb.ClientHeight div 2
     else mp := (walls[nxt].oy2 - walls[nxt].oy1) div 2 + walls[nxt].oy1;
     ou := p.Y + cellsize div 2;
@@ -396,12 +413,32 @@ begin
 end;
 
 procedure TForm1.SolveNeat(id: integer);
+var
+  i,nxt: integer;
+  tst: real;
 begin
   with act[id] do
   begin
     if gover then exit;
-      
+    Inc(score);
+    for i := 0 to High(axons) do axons[i] := 0;
+    axons[Ord(NNPosY)] := p.Y;
+
+    nxt := NextWall(p);
+    if nxt < 0 then
+    begin
+      axons[Ord(NNDist)] := pb.ClientWidth;
+      axons[Ord(NNOpenY0)] := 1;
+      axons[Ord(NNOpenY1)] := pb.ClientHeight-1;
+    end else
+    begin
+      axons[Ord(NNDist)] := walls[nxt].x + cellsize - p.X;
+      axons[Ord(NNOpenY0)] := walls[nxt].oy1;
+      axons[Ord(NNOpenY1)] := walls[nxt].oy2;
+    end;
   end;    // with
+  
+  NeuralEval(@(act[id]));
 end;
 
 function TForm1.RandomGene: real;
@@ -670,7 +707,7 @@ begin
         cx := cx + cellsize * 2;
         cy := hs;
       end;
-      if abs(g[maxneurons*i]) < minsigma then
+      if abs(g[(maxneurons+1)*i]) < minsigma then
         pb2.Canvas.Brush.Color := clWhite
       else
         pb2.Canvas.Brush.Color := clBlue;
@@ -686,12 +723,11 @@ begin
   pb2.Canvas.Pen.Width := 2;
   for i := 0 to maxneurons-1 do
   begin
-    if abs(g[maxneurons*i]) < epsilon then continue;
+    if abs(g[(maxneurons+1)*i]) < minsigma then continue;
     for j := 0 to maxneurons-1 do
     begin
       if i = j then continue;
-      if (j < fixinputs) or (j+fixouts >= maxneurons) then continue;
-        
+      if i < fixinputs then continue;
       with pb2.Canvas do
       begin
         MoveTo(pts[i].X,pts[i].Y);
@@ -724,6 +760,26 @@ begin
       exit;
     end;
   end;    // for
+end;
+
+procedure TForm1.NeuralEval(a: PActor);
+var
+  i,j: Integer;
+  sum: real;
+begin
+  for i := fixinputs to maxneurons-1 do
+  begin
+    if abs(a.g[(maxneurons+1)*i]) < minsigma then continue;
+    sum := 0;
+    for j := 0 to maxneurons-1 do
+    begin
+      if i = j then continue;
+      sum := sum + a.axons[j] * a.g[maxneurons*i+j];
+    end;    // for
+    a.axons[i] := tanh(sum*abs(a.g[(maxneurons+1)*i])*powmult/2.0);
+  end;    // for
+  for i := 0 to fixouts-1 do
+    a.input[i] := a.axons[maxneurons-fixouts+i] > 0.5;
 end;
 
 end.
