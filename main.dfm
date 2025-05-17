@@ -96,6 +96,13 @@ object Form1: TForm1
     Height = 13
     Caption = 'MaxVal'
   end
+  object Label12: TLabel
+    Left = 96
+    Top = 8
+    Width = 9
+    Height = 13
+    Caption = '---'
+  end
   object Panel1: TPanel
     Left = 8
     Top = 32
@@ -181,6 +188,7 @@ object Form1: TForm1
       Width = 41
       Height = 17
       Caption = 'RL'
+      Enabled = False
       TabOrder = 2
     end
   end
@@ -233,8 +241,8 @@ object Form1: TForm1
     Width = 49
     Height = 21
     TabOrder = 8
-    Text = '0.150000005960464'
-    Numb = 0.150000005960464500
+    Text = '0.2'
+    Numb = 0.200000002980232200
   end
   object kInvert: TNEdit
     Left = 464
@@ -242,8 +250,8 @@ object Form1: TForm1
     Width = 49
     Height = 21
     TabOrder = 9
-    Text = '0.100000001490116'
-    Numb = 0.100000001490116100
+    Text = '0.15'
+    Numb = 0.150000005960464500
   end
   object xMin: TNEdit
     Left = 464
@@ -251,7 +259,8 @@ object Form1: TForm1
     Width = 49
     Height = 21
     TabOrder = 10
-    Text = '0'
+    Text = '-2'
+    Numb = -2.000000000000000000
   end
   object xMax: TNEdit
     Left = 464
@@ -270,7 +279,7 @@ object Form1: TForm1
     MaxValue = 9999
     MinValue = 0
     TabOrder = 12
-    Value = 1
+    Value = 2
   end
   object nAlpha: TSpinEdit
     Left = 464
@@ -280,7 +289,7 @@ object Form1: TForm1
     MaxValue = 9999
     MinValue = 0
     TabOrder = 13
-    Value = 8
+    Value = 5
   end
   object nBeta: TSpinEdit
     Left = 464

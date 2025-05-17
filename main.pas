@@ -25,9 +25,12 @@ type
     x: integer;
     oy1,oy2: integer;
   end;
+
   TNNInput = (NNPosY, NNDist, NNOpenY0, NNOpenY1);
+
   TGenes = array[0..(maxneurons*maxneurons)-1] of real;
   PGenes = ^TGenes;
+
   TActor = record
     p: TPoint;
     g: TGenes;
@@ -38,6 +41,7 @@ type
     axons: array[0..maxneurons-1] of real;
   end;
   PActor = ^TActor;
+
   TPopulos = array of TActor;
   PPopulos = ^TPopulos;
 
@@ -78,6 +82,7 @@ type
     nSplits: TSpinEdit;
     pb2: TPaintBox;
     BitBtn2: TBitBtn;
+    Label12: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -91,13 +96,13 @@ type
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
   private
-    { Private declarations }
     walls: array[0..numwalls-1] of TWall;
     act,next: TPopulos;
     auto: boolean;
     iter: integer;
+    prev_best,all_best: integer;
+    surf: TBitmap;
   public
-    { Public declarations }
     procedure Reset(id: integer);
     procedure ResetField;
     procedure SetWall(idx,cx: integer);
@@ -140,6 +145,9 @@ begin
   Reset(0);
   ResetField;
   auto := false;
+  surf := TBitmap.Create;
+  surf.Width := pb.ClientWidth;
+  surf.Height := pb.ClientHeight;
 end;
 
 procedure TForm1.Reset(id: integer);
@@ -256,7 +264,7 @@ procedure TForm1.Draw;
 var
   I: Integer;
 begin
-  with pb.Canvas do
+  with surf.Canvas do
   begin
     Brush.Style := bsSolid;
     Brush.Color := clWhite;
@@ -268,14 +276,14 @@ begin
   for I := 0 to High(walls) do
   begin
     if (walls[I].x < -cellsize) or (walls[I].x > pb.ClientWidth) then continue;
-    with pb.Canvas do
+    with surf.Canvas do
     begin
       Rectangle(walls[I].x,0,walls[I].x+cellsize,walls[I].oy1);
       Rectangle(walls[I].x,walls[I].oy2,walls[I].x+cellsize,pb.ClientHeight);
     end;    // with
   end;    // for
 
-  with pb.Canvas do
+  with surf.Canvas do
   begin
     Pen.Color := clRed;
     for I := 0 to High(act) do
@@ -288,6 +296,8 @@ begin
       end;    // with
     end;    // for
   end;    // with
+
+  pb.Canvas.Draw(0,0,surf);
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
@@ -332,18 +342,21 @@ begin
   SetLength(next,0);
   ResetField;
   iter := 0;
+  all_best := 0;
+  prev_best := 0;
   Timer2.Enabled := true;
 end;
 
 procedure TForm1.Timer2Timer(Sender: TObject);
 var
-  I: Integer;
+  I,bsc: Integer;
   over,rest: boolean;
 begin
-  over := true;
-  rest := true;
-  Timer2.Enabled := false;
+  over := true; // if noone's alive, this population is over
+  rest := true; // restart the timer after finishing the cycle
+  Timer2.Enabled := false; // stop timer to prevent recursive calls in implicitly-called message pump
 
+  // for each actor, fire up a solver and then step simulation for that actor
   for I := 0 to High(act) do
   begin
     if rb1.Checked then SolveTrad(I);
@@ -351,10 +364,20 @@ begin
     Step(I);
     if not act[I].gover then over := false;
   end;    // for
-  
+
+  // move field forward and draw the new frame
   StepField;
   if drawSteps.Checked then Draw;
 
+  // find out best score so far and update scoring label
+  bsc := 0;
+  for i := 0 to High(act) do
+  begin
+    if act[i].score > bsc then bsc := act[i].score;
+  end;    // for
+  Label1.Caption := 'Score: ' + IntToStr(bsc);
+
+  // if the turn is over (all dead), either stop the game or advance to next population
   if over then
   begin
     if rb2.Checked then NeatNext
@@ -365,6 +388,7 @@ begin
     end;
   end;
 
+  // finally, restart the timer (if needed)
   Timer2.Enabled := rest;
 end;
 
@@ -408,7 +432,6 @@ begin
     if p.Y >= pb.ClientHeight - jumpspeed then input[1] := false;
 
     Inc(score);
-    Label1.Caption := 'Score: ' + IntToStr(score);
   end;    // with
 end;
 
@@ -638,7 +661,9 @@ var
 begin
   Inc(iter);
   arr := SortPop(@act);
-  Label1.Caption := 'Best score: ' + IntToStr(arr[0].score);
+  prev_best := arr[0].score;
+  if all_best < prev_best then all_best := prev_best;
+  Label12.Caption := 'Previous: ' + IntToStr(prev_best) + '; Best: ' + IntToStr(all_best);
   Label3.Caption := 'Iteration: ' + IntToStr(iter);
   DrawNetwork(@(arr[0].g));
 
@@ -749,8 +774,6 @@ procedure TForm1.pbMouseDown(Sender: TObject; Button: TMouseButton;
 var
   i,hs: integer;
 begin
-  //X := X - pb.Left;
-  //Y := Y - pb.Top;
   hs := cellsize div 2;
   for I := 0 to High(act) do
   begin
@@ -778,6 +801,7 @@ begin
     end;    // for
     a.axons[i] := tanh(sum*abs(a.g[(maxneurons+1)*i])*powmult/2.0);
   end;    // for
+
   for i := 0 to fixouts-1 do
     a.input[i] := a.axons[maxneurons-fixouts+i] > 0.5;
 end;
