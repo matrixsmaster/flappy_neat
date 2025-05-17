@@ -17,7 +17,6 @@ const
   fixinputs = 4;
   fixouts = 2;
   epsilon = 0.01;
-  minsigma = 0.1;
   powmult = 1.0;
 
 type
@@ -83,6 +82,14 @@ type
     pb2: TPaintBox;
     BitBtn2: TBitBtn;
     Label12: TLabel;
+    GroupBox2: TGroupBox;
+    GroupBox3: TGroupBox;
+    GroupBox4: TGroupBox;
+    cbCumulFit: TCheckBox;
+    Label13: TLabel;
+    xMinAct: TNEdit;
+    Label14: TLabel;
+    nWinner: TSpinEdit;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -656,7 +663,7 @@ end;
 
 procedure TForm1.NeatNext;
 var
-  I: Integer;
+  i,tmp: Integer;
   arr: TPopulos;
 begin
   Inc(iter);
@@ -683,7 +690,12 @@ begin
   act := next;
   next := nil;
 
-  for I := 0 to High(act) do Reset(I);
+  for i := 0 to High(act) do
+  begin
+    if cbCumulFit.Checked then tmp := act[i].score;
+    Reset(i);
+    if cbCumulFit.Checked then act[i].score := tmp div 2;
+  end;
   ResetField;
 end;
 
@@ -732,7 +744,7 @@ begin
         cx := cx + cellsize * 2;
         cy := hs;
       end;
-      if abs(g[(maxneurons+1)*i]) < minsigma then
+      if abs(g[(maxneurons+1)*i]) < xMinAct.Numb then
         pb2.Canvas.Brush.Color := clWhite
       else
         pb2.Canvas.Brush.Color := clBlue;
@@ -745,16 +757,17 @@ begin
     cy := cy + cellsize * 2;
   end;    // for
 
-  pb2.Canvas.Pen.Width := 2;
+  //pb2.Canvas.Pen.Width := 2;
   for i := 0 to maxneurons-1 do
   begin
-    if abs(g[(maxneurons+1)*i]) < minsigma then continue;
+    if abs(g[(maxneurons+1)*i]) < xMinAct.Numb then continue;
     for j := 0 to maxneurons-1 do
     begin
       if i = j then continue;
       if i < fixinputs then continue;
       with pb2.Canvas do
       begin
+        Pen.Color := (round((g[maxneurons*i+j]-xMin.Numb)/(xMax.Numb-xMin.Numb)*256.0) and $FF) shl 16;
         MoveTo(pts[i].X,pts[i].Y);
         LineTo(pts[j].X,pts[j].Y);
       end;    // with
@@ -792,7 +805,7 @@ var
 begin
   for i := fixinputs to maxneurons-1 do
   begin
-    if abs(a.g[(maxneurons+1)*i]) < minsigma then continue;
+    if abs(a.g[(maxneurons+1)*i]) < xMinAct.Numb then continue;
     sum := 0;
     for j := 0 to maxneurons-1 do
     begin

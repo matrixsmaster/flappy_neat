@@ -5,7 +5,7 @@ object Form1: TForm1
   BorderStyle = bsSingle
   Caption = 'Flappy NEAT'
   ClientHeight = 321
-  ClientWidth = 554
+  ClientWidth = 759
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -35,66 +35,10 @@ object Form1: TForm1
   end
   object Label3: TLabel
     Left = 296
-    Top = 152
+    Top = 144
     Width = 50
     Height = 13
     Caption = 'Iteration: 0'
-  end
-  object Label4: TLabel
-    Left = 424
-    Top = 80
-    Width = 20
-    Height = 13
-    Caption = 'Elite'
-  end
-  object Label5: TLabel
-    Left = 424
-    Top = 104
-    Width = 27
-    Height = 13
-    Caption = 'Alpha'
-  end
-  object Label6: TLabel
-    Left = 424
-    Top = 128
-    Width = 22
-    Height = 13
-    Caption = 'Beta'
-  end
-  object Label7: TLabel
-    Left = 424
-    Top = 152
-    Width = 33
-    Height = 13
-    Caption = 'Mutate'
-  end
-  object Label8: TLabel
-    Left = 424
-    Top = 176
-    Width = 27
-    Height = 13
-    Caption = 'Invert'
-  end
-  object Label9: TLabel
-    Left = 424
-    Top = 200
-    Width = 25
-    Height = 13
-    Caption = 'Splits'
-  end
-  object Label10: TLabel
-    Left = 424
-    Top = 224
-    Width = 32
-    Height = 13
-    Caption = 'MinVal'
-  end
-  object Label11: TLabel
-    Left = 424
-    Top = 248
-    Width = 35
-    Height = 13
-    Caption = 'MaxVal'
   end
   object Label12: TLabel
     Left = 96
@@ -159,7 +103,7 @@ object Form1: TForm1
   end
   object GroupBox1: TGroupBox
     Left = 296
-    Top = 72
+    Top = 64
     Width = 113
     Height = 73
     Caption = 'Solver'
@@ -193,8 +137,8 @@ object Form1: TForm1
     end
   end
   object drawSteps: TCheckBox
-    Left = 424
-    Top = 48
+    Left = 656
+    Top = 8
     Width = 81
     Height = 17
     Caption = 'Draw steps'
@@ -215,7 +159,7 @@ object Form1: TForm1
   object speed: TTrackBar
     Left = 416
     Top = 8
-    Width = 129
+    Width = 233
     Height = 33
     Position = 5
     TabOrder = 6
@@ -235,91 +179,212 @@ object Form1: TForm1
       Align = alClient
     end
   end
-  object kMutate: TNEdit
-    Left = 464
-    Top = 152
-    Width = 49
-    Height = 21
-    TabOrder = 8
-    Text = '0.2'
-    Numb = 0.200000002980232200
-  end
-  object kInvert: TNEdit
-    Left = 464
-    Top = 176
-    Width = 49
-    Height = 21
-    TabOrder = 9
-    Text = '0.15'
-    Numb = 0.150000005960464500
-  end
-  object xMin: TNEdit
-    Left = 464
-    Top = 224
-    Width = 49
-    Height = 21
-    TabOrder = 10
-    Text = '-2'
-    Numb = -2.000000000000000000
-  end
-  object xMax: TNEdit
-    Left = 464
-    Top = 248
-    Width = 49
-    Height = 21
-    TabOrder = 11
-    Text = '2'
-    Numb = 2.000000000000000000
-  end
-  object nElite: TSpinEdit
-    Left = 464
-    Top = 80
-    Width = 49
-    Height = 22
-    MaxValue = 9999
-    MinValue = 0
-    TabOrder = 12
-    Value = 2
-  end
-  object nAlpha: TSpinEdit
-    Left = 464
-    Top = 104
-    Width = 49
-    Height = 22
-    MaxValue = 9999
-    MinValue = 0
-    TabOrder = 13
-    Value = 5
-  end
-  object nBeta: TSpinEdit
-    Left = 464
-    Top = 128
-    Width = 49
-    Height = 22
-    MaxValue = 9999
-    MinValue = 0
-    TabOrder = 14
-    Value = 5
-  end
-  object nSplits: TSpinEdit
-    Left = 464
-    Top = 200
-    Width = 49
-    Height = 22
-    MaxValue = 99
-    MinValue = 0
-    TabOrder = 15
-    Value = 3
-  end
   object BitBtn2: TBitBtn
     Left = 296
     Top = 168
     Width = 113
     Height = 25
     Caption = 'Stop'
-    TabOrder = 16
+    TabOrder = 8
     OnClick = BitBtn2Click
     Kind = bkAbort
+  end
+  object GroupBox2: TGroupBox
+    Left = 424
+    Top = 48
+    Width = 105
+    Height = 265
+    Caption = 'Genetic'
+    TabOrder = 9
+    object Label4: TLabel
+      Left = 8
+      Top = 24
+      Width = 20
+      Height = 13
+      Caption = 'Elite'
+    end
+    object Label5: TLabel
+      Left = 8
+      Top = 48
+      Width = 27
+      Height = 13
+      Caption = 'Alpha'
+    end
+    object Label6: TLabel
+      Left = 8
+      Top = 72
+      Width = 22
+      Height = 13
+      Caption = 'Beta'
+    end
+    object Label7: TLabel
+      Left = 8
+      Top = 96
+      Width = 33
+      Height = 13
+      Caption = 'Mutate'
+    end
+    object Label8: TLabel
+      Left = 8
+      Top = 120
+      Width = 27
+      Height = 13
+      Caption = 'Invert'
+    end
+    object Label9: TLabel
+      Left = 8
+      Top = 144
+      Width = 25
+      Height = 13
+      Caption = 'Splits'
+    end
+    object Label14: TLabel
+      Left = 8
+      Top = 168
+      Width = 34
+      Height = 13
+      Caption = 'Winner'
+    end
+    object kInvert: TNEdit
+      Left = 48
+      Top = 120
+      Width = 49
+      Height = 21
+      TabOrder = 0
+      Text = '0.15'
+      Numb = 0.150000005960464500
+    end
+    object kMutate: TNEdit
+      Left = 48
+      Top = 96
+      Width = 49
+      Height = 21
+      TabOrder = 1
+      Text = '0.2'
+      Numb = 0.200000002980232200
+    end
+    object nElite: TSpinEdit
+      Left = 48
+      Top = 24
+      Width = 49
+      Height = 22
+      MaxValue = 9999
+      MinValue = 0
+      TabOrder = 2
+      Value = 3
+    end
+    object nAlpha: TSpinEdit
+      Left = 48
+      Top = 48
+      Width = 49
+      Height = 22
+      MaxValue = 9999
+      MinValue = 0
+      TabOrder = 3
+      Value = 5
+    end
+    object nBeta: TSpinEdit
+      Left = 48
+      Top = 72
+      Width = 49
+      Height = 22
+      MaxValue = 9999
+      MinValue = 0
+      TabOrder = 4
+      Value = 5
+    end
+    object nSplits: TSpinEdit
+      Left = 48
+      Top = 144
+      Width = 49
+      Height = 22
+      MaxValue = 99
+      MinValue = 0
+      TabOrder = 5
+      Value = 3
+    end
+    object cbCumulFit: TCheckBox
+      Left = 8
+      Top = 200
+      Width = 89
+      Height = 17
+      Caption = 'Cumul. fitness'
+      TabOrder = 6
+    end
+    object nWinner: TSpinEdit
+      Left = 48
+      Top = 168
+      Width = 49
+      Height = 22
+      MaxValue = 900123
+      MinValue = 1
+      TabOrder = 7
+      Value = 4000
+    end
+  end
+  object GroupBox3: TGroupBox
+    Left = 536
+    Top = 48
+    Width = 105
+    Height = 265
+    Caption = 'Neural'
+    TabOrder = 10
+    object Label10: TLabel
+      Left = 8
+      Top = 24
+      Width = 32
+      Height = 13
+      Caption = 'MinVal'
+    end
+    object Label11: TLabel
+      Left = 8
+      Top = 48
+      Width = 35
+      Height = 13
+      Caption = 'MaxVal'
+    end
+    object Label13: TLabel
+      Left = 8
+      Top = 72
+      Width = 33
+      Height = 13
+      Caption = 'MinAct'
+    end
+    object xMin: TNEdit
+      Left = 48
+      Top = 24
+      Width = 49
+      Height = 21
+      TabOrder = 0
+      Text = '-4'
+      Numb = -4.000000000000000000
+    end
+    object xMax: TNEdit
+      Left = 48
+      Top = 48
+      Width = 49
+      Height = 21
+      TabOrder = 1
+      Text = '4'
+      Numb = 4.000000000000000000
+    end
+    object xMinAct: TNEdit
+      Left = 48
+      Top = 72
+      Width = 49
+      Height = 21
+      TabOrder = 2
+      Text = '0.1'
+      Numb = 0.100000001490116100
+    end
+  end
+  object GroupBox4: TGroupBox
+    Left = 648
+    Top = 48
+    Width = 105
+    Height = 265
+    Caption = 'Reinforcement'
+    TabOrder = 11
   end
   object Timer1: TTimer
     Enabled = False
