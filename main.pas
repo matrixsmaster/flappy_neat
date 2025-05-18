@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ImgList, ExtCtrls, StdCtrls, Spin, Buttons, Grids, ComCtrls,
-  NEdit;
+  Dialogs, ImgList, ExtCtrls, StdCtrls, Spin, Buttons, Grids, ComCtrls, Math,
+  NEdit, Menus, StrUtils;
 
 const
   numwalls = 4;
@@ -16,7 +16,8 @@ const
   gravity = 1;
   fixinputs = 4;
   fixouts = 2;
-  epsilon = 0.01;
+  precision = 3;
+  //epsilon = 0.01;
 
 type
   TWall = record
@@ -47,7 +48,6 @@ type
     Panel1: TPanel;
     pb: TPaintBox;
     Timer1: TTimer;
-    ImageList1: TImageList;
     Label1: TLabel;
     numAct: TSpinEdit;
     Label2: TLabel;
@@ -92,6 +92,23 @@ type
     Label15: TLabel;
     xActMag: TNEdit;
     cbScaleDw: TCheckBox;
+    cbConstMag: TCheckBox;
+    MainMenu1: TMainMenu;
+    File1: TMenuItem;
+    Savepopulation1: TMenuItem;
+    Loadpopulation1: TMenuItem;
+    Savewinner1: TMenuItem;
+    Loadwinner1: TMenuItem;
+    Quit1: TMenuItem;
+    Newpopulation1: TMenuItem;
+    N1: TMenuItem;
+    N2: TMenuItem;
+    od1: TOpenDialog;
+    sd1: TSaveDialog;
+    Run1: TMenuItem;
+    Runnow1: TMenuItem;
+    Resetfield1: TMenuItem;
+    Resetactors1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -104,6 +121,18 @@ type
     procedure BitBtn2Click(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure pb2MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure pb2DblClick(Sender: TObject);
+    procedure Newpopulation1Click(Sender: TObject);
+    procedure Savepopulation1Click(Sender: TObject);
+    procedure Savewinner1Click(Sender: TObject);
+    procedure Loadwinner1Click(Sender: TObject);
+    procedure Loadpopulation1Click(Sender: TObject);
+    procedure Runnow1Click(Sender: TObject);
+    procedure Resetfield1Click(Sender: TObject);
+    procedure Resetactors1Click(Sender: TObject);
+    procedure Quit1Click(Sender: TObject);
   private
     walls: array[0..numwalls-1] of TWall;
     act,next: TPopulos;
@@ -111,6 +140,7 @@ type
     iter: integer;
     prev_best,all_best: integer;
     surf: TBitmap;
+    last_drawn: TGenes;
   public
     procedure Reset(id: integer);
     procedure ResetField;
@@ -123,6 +153,7 @@ type
     function NextWall(p: TPoint): integer;
     procedure SolveTrad(id: integer);
     procedure SolveNeat(id: integer);
+    procedure SolveRein(id: integer);
     function RandomGene: real;
     procedure RandomGenes(var g: TGenes);
     procedure AlphaSelect;
@@ -136,6 +167,8 @@ type
     procedure DrawNetwork(g: PGenes);
     procedure NeuralInput(a: PActor; scale: boolean);
     procedure NeuralEval(a: PActor);
+    function GenesToString(g: PGenes): string;
+    function StringToGenes(s: string; g: PGenes): boolean;
   end;
 
 var
@@ -143,7 +176,7 @@ var
 
 implementation
 
-uses Math;
+uses weights;
 
 {$R *.dfm}
 
@@ -337,23 +370,11 @@ begin
 end;
 
 procedure TForm1.BitBtn1Click(Sender: TObject);
-var
-  I: Integer;
 begin
   auto := true;
-  Timer1.Enabled := false;
-  SetLength(act,numAct.Value);
-  for I := 0 to High(act) do
-  begin
-    Reset(I);
-    act[I].color := random($FFFFFF);
-    RandomGenes(act[I].g);
-  end;    // for
-  SetLength(next,0);
   ResetField;
-  iter := 0;
-  all_best := 0;
-  prev_best := 0;
+  Newpopulation1Click(Sender);
+  Timer1.Enabled := false;
   Timer2.Enabled := true;
 end;
 
@@ -363,7 +384,7 @@ var
   over,rest: boolean;
 begin
   over := true; // if noone's alive, this population is over
-  rest := true; // restart the timer after finishing the cycle
+  rest := Timer2.Enabled; // restart the timer after finishing the cycle
   Timer2.Enabled := false; // stop timer to prevent recursive calls in implicitly-called message pump
 
   // for each actor, fire up a solver and then step simulation for that actor
@@ -371,6 +392,7 @@ begin
   begin
     if rb1.Checked then SolveTrad(I);
     if rb2.Checked then SolveNeat(I);
+    if rb3.Checked then SolveRein(I);
     Step(I);
     if not act[I].gover then over := false;
   end;    // for
@@ -451,6 +473,10 @@ begin
   Inc(act[id].score);
   NeuralInput(@(act[id]),cbScaleDw.Checked);
   NeuralEval(@(act[id]));
+end;
+
+procedure TForm1.SolveRein(id: integer);
+begin
 end;
 
 function TForm1.RandomGene: real;
@@ -659,6 +685,18 @@ begin
   next := nil;
   act := nil;
   act := arr;
+
+  if prev_best >= nWinner.Value then
+  begin
+    // switch to RL, pick the best one
+    rb3.Checked := True;
+    numAct.Value := 1;
+    SetLength(act,1);
+    Reset(0);
+    ResetField;
+    exit;
+  end;
+
   SetLength(next,nElite.Value);
   for I := 0 to nElite.Value-1 do next[I] := arr[I];
 
@@ -687,11 +725,8 @@ var
   p: Integer;
 begin
   p := speed.Max - speed.Position;
-  if p = 0 then
-  begin
-    // TODO
-  end else
-    Timer2.Interval := p * 10;
+  if p = 0 then Timer2.Interval := 1 // pseudo-thread
+  else Timer2.Interval := p * 10;
 end;
 
 procedure TForm1.DrawNetwork(g: PGenes);
@@ -714,6 +749,7 @@ begin
   cy := hs;
   for i := 0 to maxneurons-1 do
   begin
+    pb2.Canvas.Pen.Style := psSolid;
     if i < fixinputs then
     begin
       pb2.Canvas.Brush.Color := clGreen;
@@ -728,8 +764,10 @@ begin
         cy := hs;
       end;
       if abs(g[(maxneurons+1)*i]) < xMinAct.Numb then
-        pb2.Canvas.Brush.Color := clWhite
-      else
+      begin
+        pb2.Canvas.Brush.Color := clWhite;
+        pb2.Canvas.Pen.Style := psClear;
+      end else
         pb2.Canvas.Brush.Color := clBlue;
     end;
 
@@ -748,6 +786,7 @@ begin
     begin
       if i = j then continue;
       if i < fixinputs then continue;
+      if (abs(g[(maxneurons+1)*j]) < xMinAct.Numb) and (j >= fixinputs) then continue;
       with pb2.Canvas do
       begin
         Pen.Color := (round((g[maxneurons*i+j]-xMin.Numb)/(xMax.Numb-xMin.Numb)*256.0) and $FF) shl 16;
@@ -756,6 +795,8 @@ begin
       end;    // with
     end;    // for
   end;
+
+  last_drawn := g^;
 end;
 
 procedure TForm1.BitBtn2Click(Sender: TObject);
@@ -779,6 +820,7 @@ begin
       exit;
     end;
   end;    // for
+  Edit1.SetFocus;
 end;
 
 procedure TForm1.NeuralInput(a: PActor; scale: boolean);
@@ -819,7 +861,7 @@ end;
 procedure TForm1.NeuralEval(a: PActor);
 var
   i,j: Integer;
-  sum: real;
+  sum,k: real;
 begin
   for i := fixinputs to maxneurons-1 do
   begin
@@ -828,13 +870,218 @@ begin
     for j := 0 to maxneurons-1 do
     begin
       if i = j then continue;
+      // neurons without activation would have 0 on their axons, effectively removing them from computation
+      // an extra check just makes things slower
+      //if abs(a.g[(maxneurons+1)*j]) < xMinAct.Numb then continue;
       sum := sum + a.axons[j] * a.g[maxneurons*i+j];
     end;    // for
-    a.axons[i] := tanh(sum * abs(a.g[(maxneurons+1)*i]) * xActMag.Numb / 2.0);
+    if cbConstMag.Checked then k := xActMag.Numb
+    else k := xActMag.Numb * abs(a.g[(maxneurons+1)*i]);
+    a.axons[i] := tanh(sum * k / 2.0);
   end;    // for
 
   for i := 0 to fixouts-1 do
     a.input[i] := a.axons[maxneurons-fixouts+i] > 0.5;
+end;
+
+procedure TForm1.pb2MouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  //
+end;
+
+procedure TForm1.pb2DblClick(Sender: TObject);
+begin
+  frmWeights.pWeights := @last_drawn;
+  frmWeights.Show;
+end;
+
+procedure TForm1.Newpopulation1Click(Sender: TObject);
+var
+  i: Integer;
+begin
+  SetLength(act,numAct.Value);
+  for i := 0 to High(act) do
+  begin
+    Reset(i);
+    act[i].color := random($FFFFFF);
+    RandomGenes(act[i].g);
+  end;    // for
+
+  SetLength(next,0);
+  iter := 0;
+  all_best := 0;
+  prev_best := 0;
+end;
+
+function TForm1.GenesToString(g: PGenes): string;
+var
+  i: Integer;
+begin
+  result := '';
+  for i := 0 to High(g^) do
+    result := result + FloatToStrF(g[i],ffFixed,0,precision) + ';';
+end;
+
+function TForm1.StringToGenes(s: string; g: PGenes): boolean;
+var
+  n,p,lp: integer;
+begin
+  result := false;
+  lp := 1;
+  n := 0;
+  repeat
+    p := PosEx(';',s,lp);
+    if p > lp then
+    begin
+      try
+        g[n] := StrToFloat(MidStr(s,lp,p-lp));
+      except
+        exit;
+      end;
+      Inc(n);
+    end;
+    lp := p + 1;
+  until (p < 1) or (n > High(g^));
+  result := (n > High(g^));
+end;
+
+procedure TForm1.Savepopulation1Click(Sender: TObject);
+var
+  i: Integer;
+  f: TextFile;
+begin
+  if not sd1.Execute then exit;
+  if sd1.FileName = '' then exit;
+
+  AssignFile(f,sd1.FileName);
+  try
+    Rewrite(f);
+    for i := 0 to High(act) do
+    begin
+      WriteLn(f,GenesToString(@(act[I].g)));
+    end;    // for
+    ShowMessage('Saved');
+  finally
+    CloseFile(f);
+  end;
+end;
+
+procedure TForm1.Savewinner1Click(Sender: TObject);
+var
+  f: TextFile;
+begin
+  if (High(act) < 0) or (not sd1.Execute) then exit;
+  if sd1.FileName = '' then exit;
+
+  AssignFile(f,sd1.FileName);
+  try
+    Rewrite(f);
+    WriteLn(f,GenesToString(@(act[0].g)));
+    ShowMessage('Saved');
+  finally
+    CloseFile(f);
+  end;
+end;
+
+procedure TForm1.Loadwinner1Click(Sender: TObject);
+var
+  f: TextFile;
+  s: string;
+  g: TGenes;
+begin
+  if (numAct.Value < 1) or (not od1.Execute) then exit;
+  if od1.FileName = '' then exit;
+
+  s := '';
+  AssignFile(f,od1.FileName);
+  FileMode := fmOpenRead;
+  try
+    System.Reset(f);
+    readln(f,s);
+  finally
+    CloseFile(f);
+  end;
+
+  if s = '' then exit;
+  if not StringToGenes(s,@g) then exit;
+
+  Newpopulation1Click(Sender);
+  act[0].g := g;
+  ShowMessage('Loaded');
+end;
+
+procedure TForm1.Loadpopulation1Click(Sender: TObject);
+var
+  i: Integer;
+  f: TextFile;
+  lst: TStringList;
+  s: string;
+begin
+  if (numAct.Value < 1) or (not od1.Execute) then exit;
+  if od1.FileName = '' then exit;
+
+  lst := TStringList.Create;
+  AssignFile(f,od1.FileName);
+  FileMode := fmOpenRead;
+  try
+    System.Reset(f);
+    while not Eof(f) do
+    begin
+      s := '';
+      readln(f,s);
+      if s <> '' then lst.Add(s);
+    end;    // while
+  finally
+    CloseFile(f);
+  end;
+  if lst.Count = 0 then exit;
+
+  numAct.Value := lst.Count;
+  SetLength(act,lst.Count);
+  for i := 0 to High(act) do
+  begin
+    s := lst.Strings[i];
+    if not StringToGenes(s,@(act[i].g)) then
+    begin
+      ShowMessage('Error processing line '+IntToStr(i));
+      Newpopulation1Click(Sender);
+      lst.Free;
+      exit;
+    end;
+  end;    // for
+
+  lst.Free;
+  ShowMessage('Loaded');
+end;
+
+procedure TForm1.Runnow1Click(Sender: TObject);
+begin
+  if High(act) < 0 then exit;
+  while High(act) < numAct.Value-1 do
+  begin
+    SetLength(act,High(act)+1);
+    RandomGenes(act[High(act)].g);
+  end;    // while
+  auto := true;
+  Timer2.Enabled := true;
+end;
+
+procedure TForm1.Resetfield1Click(Sender: TObject);
+begin
+  ResetField;
+end;
+
+procedure TForm1.Resetactors1Click(Sender: TObject);
+var
+  i: Integer;
+begin
+  for i := 0 to High(act) do Reset(i);
+end;
+
+procedure TForm1.Quit1Click(Sender: TObject);
+begin
+  Close;
 end;
 
 end.

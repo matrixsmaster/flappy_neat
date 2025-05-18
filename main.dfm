@@ -12,6 +12,7 @@ object Form1: TForm1
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  Menu = MainMenu1
   OldCreateOrder = False
   Position = poDesktopCenter
   OnCreate = FormCreate
@@ -114,9 +115,7 @@ object Form1: TForm1
       Width = 73
       Height = 17
       Caption = 'Algorithmic'
-      Checked = True
       TabOrder = 0
-      TabStop = True
     end
     object rb2: TRadioButton
       Left = 8
@@ -124,7 +123,9 @@ object Form1: TForm1
       Width = 57
       Height = 17
       Caption = 'NEAT'
+      Checked = True
       TabOrder = 1
+      TabStop = True
     end
     object rb3: TRadioButton
       Left = 8
@@ -132,7 +133,6 @@ object Form1: TForm1
       Width = 41
       Height = 17
       Caption = 'RL'
-      Enabled = False
       TabOrder = 2
     end
   end
@@ -177,6 +177,8 @@ object Form1: TForm1
       Width = 111
       Height = 111
       Align = alClient
+      OnDblClick = pb2DblClick
+      OnMouseDown = pb2MouseDown
     end
   end
   object BitBtn2: TBitBtn
@@ -251,8 +253,8 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 0
-      Text = '0.15'
-      Numb = 0.150000005960464500
+      Text = '0.1'
+      Numb = 0.100000001490116100
     end
     object kMutate: TNEdit
       Left = 48
@@ -260,8 +262,8 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 1
-      Text = '0.2'
-      Numb = 0.200000002980232200
+      Text = '0.12'
+      Numb = 0.119999997317791000
     end
     object nElite: TSpinEdit
       Left = 48
@@ -309,8 +311,6 @@ object Form1: TForm1
       Width = 89
       Height = 17
       Caption = 'Cumul. fitness'
-      Checked = True
-      State = cbChecked
       TabOrder = 6
     end
     object nWinner: TSpinEdit
@@ -365,8 +365,8 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 0
-      Text = '-4'
-      Numb = -4.000000000000000000
+      Text = '-2'
+      Numb = -2.000000000000000000
     end
     object xMax: TNEdit
       Left = 48
@@ -374,8 +374,8 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 1
-      Text = '4'
-      Numb = 4.000000000000000000
+      Text = '2'
+      Numb = 2.000000000000000000
     end
     object xMinAct: TNEdit
       Left = 48
@@ -383,8 +383,8 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 2
-      Text = '0.2'
-      Numb = 0.200000002980232200
+      Text = '0.5'
+      Numb = 0.500000000000000000
     end
     object xActMag: TNEdit
       Left = 48
@@ -392,8 +392,8 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 3
-      Text = '1'
-      Numb = 1.000000000000000000
+      Text = '100'
+      Numb = 100.000000000000000000
     end
     object cbScaleDw: TCheckBox
       Left = 8
@@ -401,7 +401,19 @@ object Form1: TForm1
       Width = 81
       Height = 17
       Caption = 'Scale down'
+      Checked = True
+      State = cbChecked
       TabOrder = 4
+    end
+    object cbConstMag: TCheckBox
+      Left = 8
+      Top = 152
+      Width = 81
+      Height = 17
+      Caption = 'Const mag.'
+      Checked = True
+      State = cbChecked
+      TabOrder = 5
     end
   end
   object GroupBox4: TGroupBox
@@ -417,17 +429,83 @@ object Form1: TForm1
     Interval = 50
     OnTimer = Timer1Timer
     Left = 16
-    Top = 40
-  end
-  object ImageList1: TImageList
-    Left = 48
-    Top = 40
+    Top = 72
   end
   object Timer2: TTimer
     Enabled = False
     Interval = 50
     OnTimer = Timer2Timer
-    Left = 16
+    Left = 48
     Top = 72
+  end
+  object MainMenu1: TMainMenu
+    Left = 16
+    Top = 40
+    object File1: TMenuItem
+      Caption = 'File'
+      object Newpopulation1: TMenuItem
+        Caption = 'New population'
+        OnClick = Newpopulation1Click
+      end
+      object Savepopulation1: TMenuItem
+        Caption = 'Save population'
+        ShortCut = 16467
+        OnClick = Savepopulation1Click
+      end
+      object Loadpopulation1: TMenuItem
+        Caption = 'Load population'
+        ShortCut = 16463
+        OnClick = Loadpopulation1Click
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
+      object Savewinner1: TMenuItem
+        Caption = 'Save winner'
+        OnClick = Savewinner1Click
+      end
+      object Loadwinner1: TMenuItem
+        Caption = 'Load winner'
+        OnClick = Loadwinner1Click
+      end
+      object N2: TMenuItem
+        Caption = '-'
+      end
+      object Quit1: TMenuItem
+        Caption = 'Quit'
+        ShortCut = 16465
+        OnClick = Quit1Click
+      end
+    end
+    object Run1: TMenuItem
+      Caption = 'Run'
+      object Resetfield1: TMenuItem
+        Caption = 'Reset field'
+        OnClick = Resetfield1Click
+      end
+      object Resetactors1: TMenuItem
+        Caption = 'Reset actors'
+        OnClick = Resetactors1Click
+      end
+      object Runnow1: TMenuItem
+        Caption = 'Run now'
+        ShortCut = 116
+        OnClick = Runnow1Click
+      end
+    end
+  end
+  object od1: TOpenDialog
+    DefaultExt = 'csv'
+    Filter = 'CSV files|*.csv|All files|*.*'
+    Title = 'Load data'
+    Left = 16
+    Top = 104
+  end
+  object sd1: TSaveDialog
+    DefaultExt = 'csv'
+    Filter = 'CSV files|*.csv|All files|*.*'
+    Title = 'Save data'
+    Left = 48
+    Top = 104
   end
 end
