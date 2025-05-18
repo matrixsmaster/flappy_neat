@@ -301,7 +301,7 @@ object Form1: TForm1
       MaxValue = 99
       MinValue = 0
       TabOrder = 5
-      Value = 3
+      Value = 4
     end
     object cbCumulFit: TCheckBox
       Left = 8
@@ -309,6 +309,8 @@ object Form1: TForm1
       Width = 89
       Height = 17
       Caption = 'Cumul. fitness'
+      Checked = True
+      State = cbChecked
       TabOrder = 6
     end
     object nWinner: TSpinEdit
@@ -350,6 +352,13 @@ object Form1: TForm1
       Height = 13
       Caption = 'MinAct'
     end
+    object Label15: TLabel
+      Left = 8
+      Top = 96
+      Width = 37
+      Height = 13
+      Caption = 'ActMag'
+    end
     object xMin: TNEdit
       Left = 48
       Top = 24
@@ -374,8 +383,25 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 2
-      Text = '0.1'
-      Numb = 0.100000001490116100
+      Text = '0.2'
+      Numb = 0.200000002980232200
+    end
+    object xActMag: TNEdit
+      Left = 48
+      Top = 96
+      Width = 49
+      Height = 21
+      TabOrder = 3
+      Text = '1'
+      Numb = 1.000000000000000000
+    end
+    object cbScaleDw: TCheckBox
+      Left = 8
+      Top = 128
+      Width = 81
+      Height = 17
+      Caption = 'Scale down'
+      TabOrder = 4
     end
   end
   object GroupBox4: TGroupBox

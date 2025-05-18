@@ -17,7 +17,6 @@ const
   fixinputs = 4;
   fixouts = 2;
   epsilon = 0.01;
-  powmult = 1.0;
 
 type
   TWall = record
@@ -90,6 +89,9 @@ type
     xMinAct: TNEdit;
     Label14: TLabel;
     nWinner: TSpinEdit;
+    Label15: TLabel;
+    xActMag: TNEdit;
+    cbScaleDw: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -132,6 +134,7 @@ type
     function SortPop(src: PPopulos): TPopulos;
     procedure NeatNext;
     procedure DrawNetwork(g: PGenes);
+    procedure NeuralInput(a: PActor; scale: boolean);
     procedure NeuralEval(a: PActor);
   end;
 
@@ -443,31 +446,10 @@ begin
 end;
 
 procedure TForm1.SolveNeat(id: integer);
-var
-  i,nxt: integer;
-  tst: real;
 begin
-  with act[id] do
-  begin
-    if gover then exit;
-    Inc(score);
-    for i := 0 to High(axons) do axons[i] := 0;
-    axons[Ord(NNPosY)] := p.Y;
-
-    nxt := NextWall(p);
-    if nxt < 0 then
-    begin
-      axons[Ord(NNDist)] := pb.ClientWidth;
-      axons[Ord(NNOpenY0)] := 1;
-      axons[Ord(NNOpenY1)] := pb.ClientHeight-1;
-    end else
-    begin
-      axons[Ord(NNDist)] := walls[nxt].x + cellsize - p.X;
-      axons[Ord(NNOpenY0)] := walls[nxt].oy1;
-      axons[Ord(NNOpenY1)] := walls[nxt].oy2;
-    end;
-  end;    // with
-  
+  if act[id].gover then exit;
+  Inc(act[id].score);
+  NeuralInput(@(act[id]),cbScaleDw.Checked);
   NeuralEval(@(act[id]));
 end;
 
@@ -690,6 +672,7 @@ begin
   act := next;
   next := nil;
 
+  tmp := 0; // make compiler happy
   for i := 0 to High(act) do
   begin
     if cbCumulFit.Checked then tmp := act[i].score;
@@ -798,6 +781,41 @@ begin
   end;    // for
 end;
 
+procedure TForm1.NeuralInput(a: PActor; scale: boolean);
+var
+  i,nxt: integer;
+begin
+  for i := 0 to High(a.axons) do a.axons[i] := 0;
+  a.axons[Ord(NNPosY)] := a.p.Y / pb.ClientHeight;
+
+  nxt := NextWall(a.p);
+  if nxt < 0 then
+  begin
+    a.axons[Ord(NNDist)] := 1;
+    a.axons[Ord(NNOpenY0)] := 0;
+    a.axons[Ord(NNOpenY1)] := 1;
+  end else
+  begin
+    a.axons[Ord(NNDist)] := (walls[nxt].x + cellsize - a.p.X) / pb.ClientWidth;
+    a.axons[Ord(NNOpenY0)] := walls[nxt].oy1 / pb.ClientHeight;
+    a.axons[Ord(NNOpenY1)] := walls[nxt].oy2 / pb.ClientHeight;
+  end;
+
+  // rescale
+  for i := 0 to fixinputs-1 do
+  begin
+    if scale then
+      a.axons[i] := a.axons[i] * (xMax.Numb-xMin.Numb) + xMin.Numb
+    else
+    begin
+      if i = Ord(NNDist) then
+        a.axons[i] := a.axons[i] * pb.ClientWidth
+      else
+        a.axons[i] := a.axons[i] * pb.ClientHeight;
+    end;
+  end;    // for
+end;
+
 procedure TForm1.NeuralEval(a: PActor);
 var
   i,j: Integer;
@@ -812,7 +830,7 @@ begin
       if i = j then continue;
       sum := sum + a.axons[j] * a.g[maxneurons*i+j];
     end;    // for
-    a.axons[i] := tanh(sum*abs(a.g[(maxneurons+1)*i])*powmult/2.0);
+    a.axons[i] := tanh(sum * abs(a.g[(maxneurons+1)*i]) * xActMag.Numb / 2.0);
   end;    // for
 
   for i := 0 to fixouts-1 do
