@@ -138,7 +138,7 @@ object Form1: TForm1
   end
   object drawSteps: TCheckBox
     Left = 656
-    Top = 8
+    Top = 0
     Width = 81
     Height = 17
     Caption = 'Draw steps'
@@ -423,6 +423,30 @@ object Form1: TForm1
     Height = 265
     Caption = 'Reinforcement'
     TabOrder = 11
+    object Label16: TLabel
+      Left = 8
+      Top = 24
+      Width = 29
+      Height = 13
+      Caption = 'LRate'
+    end
+    object xLRate: TNEdit
+      Left = 48
+      Top = 24
+      Width = 49
+      Height = 21
+      TabOrder = 0
+      Text = '0.01'
+      Numb = 0.009999999776482582
+    end
+  end
+  object drawHeat: TCheckBox
+    Left = 656
+    Top = 24
+    Width = 97
+    Height = 17
+    Caption = 'Draw heatmap'
+    TabOrder = 12
   end
   object Timer1: TTimer
     Enabled = False

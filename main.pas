@@ -38,6 +38,7 @@ type
     input: array[0..1] of boolean;
     color: TColor;
     axons: array[0..maxneurons-1] of real;
+    backup: TGenes;
   end;
   PActor = ^TActor;
 
@@ -109,6 +110,9 @@ type
     Runnow1: TMenuItem;
     Resetfield1: TMenuItem;
     Resetactors1: TMenuItem;
+    Label16: TLabel;
+    xLRate: TNEdit;
+    drawHeat: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -140,7 +144,9 @@ type
     iter: integer;
     prev_best,all_best: integer;
     surf: TBitmap;
+    nn_points: array[0..maxneurons-1] of TPoint;
     last_drawn: TGenes;
+    last_bscn: integer;
   public
     procedure Reset(id: integer);
     procedure ResetField;
@@ -164,7 +170,10 @@ type
     procedure FillRandom;
     function SortPop(src: PPopulos): TPopulos;
     procedure NeatNext;
+    procedure ReinNext;
+    procedure ReinStart;
     procedure DrawNetwork(g: PGenes);
+    procedure DrawHeatmap(a: PActor);
     procedure NeuralInput(a: PActor; scale: boolean);
     procedure NeuralEval(a: PActor);
     function GenesToString(g: PGenes): string;
@@ -380,7 +389,7 @@ end;
 
 procedure TForm1.Timer2Timer(Sender: TObject);
 var
-  I,bsc: Integer;
+  I,bsc,bscn: Integer;
   over,rest: boolean;
 begin
   over := true; // if noone's alive, this population is over
@@ -403,16 +412,31 @@ begin
 
   // find out best score so far and update scoring label
   bsc := 0;
+  bscn := -1;
   for i := 0 to High(act) do
   begin
-    if act[i].score > bsc then bsc := act[i].score;
+    if act[i].score > bsc then
+    begin
+      bsc := act[i].score;
+      bscn := i;
+    end;
   end;    // for
   Label1.Caption := 'Score: ' + IntToStr(bsc);
+
+  // update network image if needed
+  if drawHeat.Checked and (bscn >= 0) then
+  begin
+    if bscn <> last_bscn then
+      DrawNetwork(@(act[bscn].g));
+    last_bscn := bscn;
+    DrawHeatmap(@(act[bscn]));
+  end;
 
   // if the turn is over (all dead), either stop the game or advance to next population
   if over then
   begin
     if rb2.Checked then NeatNext
+    else if rb3.Checked then ReinNext
     else
     begin
       rest := false;
@@ -477,6 +501,8 @@ end;
 
 procedure TForm1.SolveRein(id: integer);
 begin
+  // for now, it's identical to NEAT
+  SolveNeat(id);
 end;
 
 function TForm1.RandomGene: real;
@@ -688,12 +714,9 @@ begin
 
   if prev_best >= nWinner.Value then
   begin
-    // switch to RL, pick the best one
+    // switch to RL
     rb3.Checked := True;
-    numAct.Value := 1;
-    SetLength(act,1);
-    Reset(0);
-    ResetField;
+    ReinStart;
     exit;
   end;
 
@@ -720,6 +743,55 @@ begin
   ResetField;
 end;
 
+procedure TForm1.ReinNext;
+var
+  i,j: Integer;
+  vx,vn: real;
+begin
+  // if result is bad, restore previous config
+  if act[0].score < prev_best then act[0].g := act[0].backup
+  else act[0].backup := act[0].g; // otherwise, save the new, better one
+
+  // update the info as usual
+  Inc(iter);
+  prev_best := act[0].score;
+  if all_best < prev_best then all_best := prev_best;
+  Label12.Caption := 'Previous: ' + IntToStr(prev_best) + '; Best: ' + IntToStr(all_best);
+  Label3.Caption := 'Iteration: ' + IntToStr(iter);
+  DrawNetwork(@(act[0].g));
+
+  // for each middle or output neuron
+  for i := fixinputs to maxneurons-1 do
+  begin
+    // for each weight
+    for j := 0 to maxneurons-1 do
+    begin
+      if i = j then continue;
+      vx := random * act[0].axons[j] * xLRate.Numb;
+      vn := act[0].g[maxneurons*i+j];
+      if random < 0.5 then vn := vn + vx
+      else vn := vn - vx;
+      act[0].g[maxneurons*i+j] := vn;
+    end;    // for
+  end;    // for
+
+  // prepare for the new round
+  for i := 0 to High(act) do Reset(i);
+  ResetField;
+end;
+
+procedure TForm1.ReinStart;
+begin
+  numAct.Value := 1;
+  // pick the best one (should be on top already)
+  SetLength(act,1);
+  act[0].backup := act[0].g;
+  // reset everything
+  Reset(0);
+  ResetField;
+  iter := 0;
+end;
+
 procedure TForm1.speedChange(Sender: TObject);
 var
   p: Integer;
@@ -732,7 +804,6 @@ end;
 procedure TForm1.DrawNetwork(g: PGenes);
 var
   i,j,cx,cy,hs: Integer;
-  pts: array[0..maxneurons-1] of TPoint;
 begin
   with pb2.Canvas do
   begin
@@ -772,8 +843,8 @@ begin
     end;
 
     pb2.Canvas.Ellipse(cx-hs,cy-hs,cx+hs,cy+hs);
-    pts[i].X := cx;
-    pts[i].Y := cy;
+    nn_points[i].X := cx;
+    nn_points[i].Y := cy;
 
     cy := cy + cellsize * 2;
   end;    // for
@@ -790,13 +861,43 @@ begin
       with pb2.Canvas do
       begin
         Pen.Color := (round((g[maxneurons*i+j]-xMin.Numb)/(xMax.Numb-xMin.Numb)*256.0) and $FF) shl 16;
-        MoveTo(pts[i].X,pts[i].Y);
-        LineTo(pts[j].X,pts[j].Y);
+        MoveTo(nn_points[i].X,nn_points[i].Y);
+        LineTo(nn_points[j].X,nn_points[j].Y);
       end;    // with
     end;    // for
   end;
 
   last_drawn := g^;
+end;
+
+procedure TForm1.DrawHeatmap(a: PActor);
+var
+  i,hs: Integer;
+  minval,maxval: real;
+begin
+  with pb2.Canvas do
+  begin
+    Brush.Style := bsSolid;
+    Pen.Style := psClear;
+  end;    // with
+
+  minval := 1e10;
+  maxval := -1e10;
+  for i := fixinputs to maxneurons-fixouts do
+  begin
+    if a.axons[i] < minval then minval := a.axons[i];
+    if a.axons[i] > maxval then maxval := a.axons[i];
+  end;    // for
+
+  hs := cellsize div 2;
+  for i := fixinputs to maxneurons-1 do
+  begin
+    with pb2.Canvas do
+    begin
+      Brush.Color := (round((a.axons[i]-minval)/(maxval-minval)*256.0) and $FF) shl 8;
+      Ellipse(nn_points[i].X-hs,nn_points[i].Y-hs,nn_points[i].X+hs,nn_points[i].Y+hs);
+    end;    // with
+  end;    // for
 end;
 
 procedure TForm1.BitBtn2Click(Sender: TObject);
@@ -912,6 +1013,7 @@ begin
   iter := 0;
   all_best := 0;
   prev_best := 0;
+  last_bscn := -1;
 end;
 
 function TForm1.GenesToString(g: PGenes): string;
