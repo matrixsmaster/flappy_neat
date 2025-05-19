@@ -45,6 +45,13 @@ type
   TPopulos = array of TActor;
   PPopulos = ^TPopulos;
 
+  TNeuroThread = class(TThread)
+  private
+    { Private declarations }
+  protected
+    procedure Execute; override;
+  end;
+
   TForm1 = class(TForm)
     Panel1: TPanel;
     pb: TPaintBox;
@@ -113,6 +120,11 @@ type
     Label16: TLabel;
     xLRate: TNEdit;
     drawHeat: TCheckBox;
+    Setup1: TMenuItem;
+    Setseed1: TMenuItem;
+    Label17: TLabel;
+    cbEliteClones: TCheckBox;
+    cbStepFun: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -137,6 +149,8 @@ type
     procedure Resetfield1Click(Sender: TObject);
     procedure Resetactors1Click(Sender: TObject);
     procedure Quit1Click(Sender: TObject);
+    procedure rb3Click(Sender: TObject);
+    procedure Setseed1Click(Sender: TObject);
   private
     walls: array[0..numwalls-1] of TWall;
     act,next: TPopulos;
@@ -147,7 +161,9 @@ type
     nn_points: array[0..maxneurons-1] of TPoint;
     last_drawn: TGenes;
     last_bscn: integer;
+    base_seed: longint;
   public
+    procedure Reseed(nseed: Longint);
     procedure Reset(id: integer);
     procedure ResetField;
     procedure SetWall(idx,cx: integer);
@@ -191,7 +207,7 @@ uses weights;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  Randomize;
+  Reseed(0);
   SetLength(act,1);
   act[0].color := clFuchsia;
   Reset(0);
@@ -200,6 +216,18 @@ begin
   surf := TBitmap.Create;
   surf.Width := pb.ClientWidth;
   surf.Height := pb.ClientHeight;
+end;
+
+procedure TForm1.Reseed(nseed: Longint);
+begin
+  if nseed = 0 then nseed := base_seed;
+  if nseed = 0 then Randomize
+  else
+  begin
+    RandSeed := nseed;
+    base_seed := nseed;
+  end;
+  Label17.Caption := 'Seed: '+IntToStr(RandSeed);
 end;
 
 procedure TForm1.Reset(id: integer);
@@ -415,7 +443,7 @@ begin
   bscn := -1;
   for i := 0 to High(act) do
   begin
-    if act[i].score > bsc then
+    if (not act[i].gover) and (act[i].score > bsc) then
     begin
       bsc := act[i].score;
       bscn := i;
@@ -721,7 +749,11 @@ begin
   end;
 
   SetLength(next,nElite.Value);
-  for I := 0 to nElite.Value-1 do next[I] := arr[I];
+  for I := 0 to nElite.Value-1 do
+  begin
+    if cbEliteClones.Checked then next[I] := arr[0]
+    else next[I] := arr[I];
+  end;
 
   AlphaSelect;
   Tournament;
@@ -750,11 +782,15 @@ var
 begin
   // if result is bad, restore previous config
   if act[0].score < prev_best then act[0].g := act[0].backup
-  else act[0].backup := act[0].g; // otherwise, save the new, better one
-
+  else
+  begin
+    // otherwise, save the new, better one
+    act[0].backup := act[0].g;
+    prev_best := act[0].score;
+  end;
+  
   // update the info as usual
   Inc(iter);
-  prev_best := act[0].score;
   if all_best < prev_best then all_best := prev_best;
   Label12.Caption := 'Previous: ' + IntToStr(prev_best) + '; Best: ' + IntToStr(all_best);
   Label3.Caption := 'Iteration: ' + IntToStr(iter);
@@ -766,8 +802,8 @@ begin
     // for each weight
     for j := 0 to maxneurons-1 do
     begin
-      if i = j then continue;
-      vx := random * act[0].axons[j] * xLRate.Numb;
+      if i = j then vx := random * xLRate.Numb
+      else vx := random * act[0].axons[j] * xLRate.Numb;
       vn := act[0].g[maxneurons*i+j];
       if random < 0.5 then vn := vn + vx
       else vn := vn - vx;
@@ -976,9 +1012,18 @@ begin
       //if abs(a.g[(maxneurons+1)*j]) < xMinAct.Numb then continue;
       sum := sum + a.axons[j] * a.g[maxneurons*i+j];
     end;    // for
-    if cbConstMag.Checked then k := xActMag.Numb
-    else k := xActMag.Numb * abs(a.g[(maxneurons+1)*i]);
-    a.axons[i] := tanh(sum * k / 2.0);
+
+    if cbStepFun.Checked then
+    begin
+      if sum > xMax.Numb then sum := xMax.Numb
+      else if sum < xMin.Numb then sum := xMin.Numb;
+      a.axons[i] := sum;
+    end else
+    begin
+      if cbConstMag.Checked then k := xActMag.Numb
+      else k := xActMag.Numb * abs(a.g[(maxneurons+1)*i]);
+      a.axons[i] := tanh(sum * k / 2.0);
+    end;
   end;    // for
 
   for i := 0 to fixouts-1 do
@@ -1001,6 +1046,7 @@ procedure TForm1.Newpopulation1Click(Sender: TObject);
 var
   i: Integer;
 begin
+  Reseed(0);
   SetLength(act,numAct.Value);
   for i := 0 to High(act) do
   begin
@@ -1154,6 +1200,9 @@ begin
   end;    // for
 
   lst.Free;
+  Reseed(0);
+  ResetField;
+  Resetactors1Click(Sender);
   ShowMessage('Loaded');
 end;
 
@@ -1184,6 +1233,39 @@ end;
 procedure TForm1.Quit1Click(Sender: TObject);
 begin
   Close;
+end;
+
+{ Important: Methods and properties of objects in visual components can only be
+  used in a method called using Synchronize, for example,
+
+      Synchronize(UpdateCaption);
+
+  and UpdateCaption could look like,
+
+    procedure TNeuroThread.UpdateCaption;
+    begin
+      Form1.Caption := 'Updated in a thread';
+    end; }
+procedure TNeuroThread.Execute;
+begin
+  { Place thread code here }
+end;
+
+procedure TForm1.rb3Click(Sender: TObject);
+begin
+  if High(act) >= 0 then ReinStart;
+end;
+
+procedure TForm1.Setseed1Click(Sender: TObject);
+var
+  ns: longint;
+begin
+  try
+    ns := StrToInt(InputBox('Seed','Enter new seed',IntToStr(base_seed)));
+  except
+    exit;
+  end;
+  Reseed(ns);
 end;
 
 end.

@@ -48,13 +48,20 @@ object Form1: TForm1
     Height = 13
     Caption = '---'
   end
+  object Label17: TLabel
+    Left = 648
+    Top = 296
+    Width = 37
+    Height = 13
+    Caption = 'Seed: 0'
+  end
   object Panel1: TPanel
     Left = 8
     Top = 32
     Width = 280
     Height = 280
     BevelOuter = bvLowered
-    TabOrder = 0
+    TabOrder = 4
     object pb: TPaintBox
       Left = 1
       Top = 1
@@ -71,7 +78,7 @@ object Form1: TForm1
     Height = 22
     MaxValue = 9999
     MinValue = 1
-    TabOrder = 1
+    TabOrder = 6
     Value = 100
   end
   object BitBtn1: TBitBtn
@@ -81,7 +88,7 @@ object Form1: TForm1
     Height = 25
     Caption = 'AI'
     ModalResult = 1
-    TabOrder = 2
+    TabOrder = 1
     OnClick = BitBtn1Click
     Glyph.Data = {
       DE010000424DDE01000000000000760000002800000024000000120000000100
@@ -108,7 +115,7 @@ object Form1: TForm1
     Width = 113
     Height = 73
     Caption = 'Solver'
-    TabOrder = 3
+    TabOrder = 10
     object rb1: TRadioButton
       Left = 8
       Top = 16
@@ -134,6 +141,7 @@ object Form1: TForm1
       Height = 17
       Caption = 'RL'
       TabOrder = 2
+      OnClick = rb3Click
     end
   end
   object drawSteps: TCheckBox
@@ -144,7 +152,7 @@ object Form1: TForm1
     Caption = 'Draw steps'
     Checked = True
     State = cbChecked
-    TabOrder = 4
+    TabOrder = 3
   end
   object Edit1: TEdit
     Left = 264
@@ -152,7 +160,7 @@ object Form1: TForm1
     Width = 25
     Height = 21
     ReadOnly = True
-    TabOrder = 5
+    TabOrder = 0
     OnKeyDown = FormKeyDown
     OnKeyUp = FormKeyUp
   end
@@ -162,7 +170,7 @@ object Form1: TForm1
     Width = 233
     Height = 33
     Position = 5
-    TabOrder = 6
+    TabOrder = 2
     OnChange = speedChange
   end
   object Panel2: TPanel
@@ -170,7 +178,7 @@ object Form1: TForm1
     Top = 200
     Width = 113
     Height = 113
-    TabOrder = 7
+    TabOrder = 12
     object pb2: TPaintBox
       Left = 1
       Top = 1
@@ -187,7 +195,7 @@ object Form1: TForm1
     Width = 113
     Height = 25
     Caption = 'Stop'
-    TabOrder = 8
+    TabOrder = 11
     OnClick = BitBtn2Click
     Kind = bkAbort
   end
@@ -197,7 +205,7 @@ object Form1: TForm1
     Width = 105
     Height = 265
     Caption = 'Genetic'
-    TabOrder = 9
+    TabOrder = 7
     object Label4: TLabel
       Left = 8
       Top = 24
@@ -252,8 +260,8 @@ object Form1: TForm1
       Top = 120
       Width = 49
       Height = 21
-      TabOrder = 0
-      Text = '0.1'
+      TabOrder = 4
+      Text = '0.100000001490116'
       Numb = 0.100000001490116100
     end
     object kMutate: TNEdit
@@ -261,8 +269,8 @@ object Form1: TForm1
       Top = 96
       Width = 49
       Height = 21
-      TabOrder = 1
-      Text = '0.12'
+      TabOrder = 3
+      Text = '0.119999997317791'
       Numb = 0.119999997317791000
     end
     object nElite: TSpinEdit
@@ -272,7 +280,7 @@ object Form1: TForm1
       Height = 22
       MaxValue = 9999
       MinValue = 0
-      TabOrder = 2
+      TabOrder = 0
       Value = 3
     end
     object nAlpha: TSpinEdit
@@ -282,7 +290,7 @@ object Form1: TForm1
       Height = 22
       MaxValue = 9999
       MinValue = 0
-      TabOrder = 3
+      TabOrder = 1
       Value = 5
     end
     object nBeta: TSpinEdit
@@ -292,7 +300,7 @@ object Form1: TForm1
       Height = 22
       MaxValue = 9999
       MinValue = 0
-      TabOrder = 4
+      TabOrder = 2
       Value = 5
     end
     object nSplits: TSpinEdit
@@ -311,7 +319,7 @@ object Form1: TForm1
       Width = 89
       Height = 17
       Caption = 'Cumul. fitness'
-      TabOrder = 6
+      TabOrder = 7
     end
     object nWinner: TSpinEdit
       Left = 48
@@ -320,8 +328,16 @@ object Form1: TForm1
       Height = 22
       MaxValue = 900123
       MinValue = 1
-      TabOrder = 7
+      TabOrder = 6
       Value = 4000
+    end
+    object cbEliteClones: TCheckBox
+      Left = 8
+      Top = 224
+      Width = 81
+      Height = 17
+      Caption = 'Elite clones'
+      TabOrder = 8
     end
   end
   object GroupBox3: TGroupBox
@@ -330,7 +346,7 @@ object Form1: TForm1
     Width = 105
     Height = 265
     Caption = 'Neural'
-    TabOrder = 10
+    TabOrder = 8
     object Label10: TLabel
       Left = 8
       Top = 24
@@ -415,14 +431,22 @@ object Form1: TForm1
       State = cbChecked
       TabOrder = 5
     end
+    object cbStepFun: TCheckBox
+      Left = 8
+      Top = 176
+      Width = 89
+      Height = 17
+      Caption = 'Step function'
+      TabOrder = 6
+    end
   end
   object GroupBox4: TGroupBox
     Left = 648
     Top = 48
     Width = 105
-    Height = 265
+    Height = 241
     Caption = 'Reinforcement'
-    TabOrder = 11
+    TabOrder = 9
     object Label16: TLabel
       Left = 8
       Top = 24
@@ -436,7 +460,7 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 0
-      Text = '0.01'
+      Text = '0.00999999977648258'
       Numb = 0.009999999776482582
     end
   end
@@ -446,7 +470,7 @@ object Form1: TForm1
     Width = 97
     Height = 17
     Caption = 'Draw heatmap'
-    TabOrder = 12
+    TabOrder = 5
   end
   object Timer1: TTimer
     Enabled = False
@@ -499,6 +523,13 @@ object Form1: TForm1
         Caption = 'Quit'
         ShortCut = 16465
         OnClick = Quit1Click
+      end
+    end
+    object Setup1: TMenuItem
+      Caption = 'Setup'
+      object Setseed1: TMenuItem
+        Caption = 'Set seed'
+        OnClick = Setseed1Click
       end
     end
     object Run1: TMenuItem
