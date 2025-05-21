@@ -261,7 +261,7 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 4
-      Text = '0.100000001490116'
+      Text = '0.1'
       Numb = 0.100000001490116100
     end
     object kMutate: TNEdit
@@ -270,7 +270,7 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 3
-      Text = '0.119999997317791'
+      Text = '0.12'
       Numb = 0.119999997317791000
     end
     object nElite: TSpinEdit
@@ -329,7 +329,7 @@ object Form1: TForm1
       MaxValue = 900123
       MinValue = 1
       TabOrder = 6
-      Value = 4000
+      Value = 3000
     end
     object cbEliteClones: TCheckBox
       Left = 8
@@ -454,14 +454,94 @@ object Form1: TForm1
       Height = 13
       Caption = 'LRate'
     end
+    object Label18: TLabel
+      Left = 8
+      Top = 48
+      Width = 34
+      Height = 13
+      Caption = 'LRDev'
+    end
+    object Label19: TLabel
+      Left = 8
+      Top = 96
+      Width = 34
+      Height = 13
+      Caption = 'Epsilon'
+    end
+    object Label20: TLabel
+      Left = 8
+      Top = 120
+      Width = 31
+      Height = 13
+      Caption = 'Kappa'
+    end
+    object Label21: TLabel
+      Left = 8
+      Top = 144
+      Width = 34
+      Height = 13
+      Caption = 'AxChrg'
+    end
+    object Label22: TLabel
+      Left = 8
+      Top = 72
+      Width = 28
+      Height = 13
+      Caption = 'LRUp'
+    end
     object xLRate: TNEdit
       Left = 48
       Top = 24
       Width = 49
       Height = 21
       TabOrder = 0
-      Text = '0.00999999977648258'
+      Text = '0.05'
+      Numb = 0.050000000745058060
+    end
+    object xLRDev: TNEdit
+      Left = 48
+      Top = 48
+      Width = 49
+      Height = 21
+      TabOrder = 1
+      Text = '0.04'
+      Numb = 0.039999999105930330
+    end
+    object xEpsilon: TNEdit
+      Left = 48
+      Top = 96
+      Width = 49
+      Height = 21
+      TabOrder = 3
+      Text = '0.2'
+      Numb = 0.200000002980232200
+    end
+    object xKappa: TNEdit
+      Left = 48
+      Top = 120
+      Width = 49
+      Height = 21
+      TabOrder = 4
+      Text = '0.01'
       Numb = 0.009999999776482582
+    end
+    object xAxCharge: TNEdit
+      Left = 48
+      Top = 144
+      Width = 49
+      Height = 21
+      TabOrder = 5
+      Text = '0.05'
+      Numb = 0.050000000745058060
+    end
+    object xLRUp: TNEdit
+      Left = 48
+      Top = 72
+      Width = 49
+      Height = 21
+      TabOrder = 2
+      Text = '0.05'
+      Numb = 0.050000000745058060
     end
   end
   object drawHeat: TCheckBox
@@ -554,6 +634,15 @@ object Form1: TForm1
         Caption = 'Run now'
         ShortCut = 116
         OnClick = Runnow1Click
+      end
+    end
+    object Help1: TMenuItem
+      Caption = 'Help'
+      object Naming1: TMenuItem
+        Caption = 'Naming'
+      end
+      object About1: TMenuItem
+        Caption = 'About'
       end
     end
   end

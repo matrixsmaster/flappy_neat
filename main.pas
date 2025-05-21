@@ -129,6 +129,19 @@ type
     Save1: TMenuItem;
     od2: TOpenDialog;
     sd2: TSaveDialog;
+    Label18: TLabel;
+    Label19: TLabel;
+    xLRDev: TNEdit;
+    xEpsilon: TNEdit;
+    Label20: TLabel;
+    xKappa: TNEdit;
+    Help1: TMenuItem;
+    Naming1: TMenuItem;
+    About1: TMenuItem;
+    Label21: TLabel;
+    xAxCharge: TNEdit;
+    Label22: TLabel;
+    xLRUp: TNEdit;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -168,6 +181,7 @@ type
     last_drawn: TGenes;
     last_bscn: integer;
     base_seed: longint;
+    learn_rate: real;
   public
     procedure Reseed(nseed: Longint);
     procedure Reset(id: integer);
@@ -535,7 +549,7 @@ end;
 
 procedure TForm1.SolveRein(id: integer);
 begin
-  // for now, it's identical to NEAT
+  // for now, the simulation step is identical to NEAT
   SolveNeat(id);
 end;
 
@@ -783,55 +797,108 @@ end;
 
 procedure TForm1.ReinNext;
 var
-  i,j: Integer;
-  vx,vn: real;
+  i,j,k,win,adv: Integer;
+  eps,vx,vn: real;
+  dorand: boolean;
 begin
-  // if result is bad, restore previous config
-  if act[0].score < prev_best then act[0].g := act[0].backup
-  else
+  eps := xEpsilon.Numb;
+
+  // find the best-performer
+  win := -1;
+  prev_best := 0;
+  for i := 0 to High(act) do
   begin
-    // otherwise, save the new, better one
-    act[0].backup := act[0].g;
-    prev_best := act[0].score;
+    if act[i].score > prev_best then
+    begin
+      prev_best := act[i].score;
+      win := i;
+    end;
+  end;    // for
+
+  if win < 0 then
+  begin
+    Timer2.Enabled := False;
+    ShowMessage('No winner found. Abort.');
+    exit;
   end;
-  
-  // update the info as usual
+
+  // update the guiding values
   Inc(iter);
+  adv := prev_best - all_best;
   if all_best < prev_best then all_best := prev_best;
+
+  // update the UI as usual
   Label12.Caption := 'Previous: ' + IntToStr(prev_best) + '; Best: ' + IntToStr(all_best);
   Label3.Caption := 'Iteration: ' + IntToStr(iter);
-  DrawNetwork(@(act[0].g));
+  DrawNetwork(@(act[win].g));
 
-  // for each middle or output neuron
-  for i := fixinputs to maxneurons-1 do
+  // get the L1 norm of the winner
+  vx := 0;
+  for i := 0 to maxneurons-1 do
+    vx := vx + abs(act[win].g[i] - act[win].backup[i]);
+  dorand := (vx < xKappa.Numb);
+
+  // check how positive was the advantage and correct learning rate
+  if adv > 0 then
+    learn_rate := learn_rate * (1 + xLRUp.Numb)
+  else
+    learn_rate := learn_rate * (1 - xLRUp.Numb);
+  if learn_rate - xLRate.Numb > xLRDev.Numb then
+    learn_rate := xLRate.Numb + xLRDev.Numb
+  else if xLRate.Numb - learn_rate > xLRDev.Numb then
+    learn_rate := xLRate.Numb - xLRDev.Numb;
+
+  // for the whole population
+  for i := 0 to High(act) do
   begin
-    // for each weight
-    for j := 0 to maxneurons-1 do
+    // copy best weights
+    if i <> win then act[i].g := act[win].g;
+    // for each middle or output neuron
+    for j := fixinputs to maxneurons-1 do
     begin
-      if i = j then vx := random * xLRate.Numb
-      else vx := random * act[0].axons[j] * xLRate.Numb;
-      vn := act[0].g[maxneurons*i+j];
-      if random < 0.5 then vn := vn + vx
-      else vn := vn - vx;
-      act[0].g[maxneurons*i+j] := vn;
+      // for each weight
+      for k := 0 to maxneurons-1 do
+      begin
+        // compute the change
+        if dorand then
+        begin
+          vn := (random - 0.5) * 2.0 * eps; // in range [-epsilon, +epsilon]
+        end else
+        begin
+          vx := act[i].g[maxneurons*j+k] - act[i].backup[maxneurons*j+k];
+          // normal PPO-style clipped update
+          if vx > eps then vx := eps
+          else if vx < -eps then vx := -eps;
+          // apply advantage with learning rate and previous axon (activation) charge
+          if adv < 0 then vx := -vx;
+          vn := vx * learn_rate * (xAxCharge.Numb * act[i].axons[j]);
+        end;  // dorand
+
+        // apply the actual change
+        vn := act[i].g[maxneurons*j+k] + vn;
+        if vn > xMax.Numb then vn := xMax.Numb
+        else if vn < xMin.Numb then vn := xMin.Numb;
+        act[i].backup[maxneurons*j+k] := act[i].g[maxneurons*j+k];
+        act[i].g[maxneurons*j+k] := vn;
+      end;    // for
     end;    // for
+    Reset(i);
   end;    // for
 
   // prepare for the new round
-  for i := 0 to High(act) do Reset(i);
   ResetField;
 end;
 
 procedure TForm1.ReinStart;
+var
+  i: Integer;
 begin
-  numAct.Value := 1;
-  // pick the best one (should be on top already)
-  SetLength(act,1);
-  act[0].backup := act[0].g;
-  // reset everything
-  Reset(0);
-  ResetField;
+  for i := 0 to High(act) do act[i].backup := act[i].g;
+  learn_rate := xLRate.Numb;
+  ReinNext;
   iter := 0;
+  prev_best := 0;
+  all_best := nWinner.Value;
 end;
 
 procedure TForm1.speedChange(Sender: TObject);
@@ -1128,6 +1195,7 @@ begin
   if (High(act) < 0) or (not sd1.Execute) then exit;
   if sd1.FileName = '' then exit;
 
+  // TODO: backup best-performing actor into a separate var, save it here (don't rely on act[] being sorted)
   AssignFile(f,sd1.FileName);
   try
     Rewrite(f);
