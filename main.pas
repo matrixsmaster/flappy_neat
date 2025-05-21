@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ImgList, ExtCtrls, StdCtrls, Spin, Buttons, Grids, ComCtrls, Math,
-  NEdit, Menus, StrUtils;
+  NEdit, Menus, StrUtils, IniFiles;
 
 const
   numwalls = 4;
@@ -125,6 +125,10 @@ type
     Label17: TLabel;
     cbEliteClones: TCheckBox;
     cbStepFun: TCheckBox;
+    Load1: TMenuItem;
+    Save1: TMenuItem;
+    od2: TOpenDialog;
+    sd2: TSaveDialog;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -151,6 +155,8 @@ type
     procedure Quit1Click(Sender: TObject);
     procedure rb3Click(Sender: TObject);
     procedure Setseed1Click(Sender: TObject);
+    procedure Load1Click(Sender: TObject);
+    procedure Save1Click(Sender: TObject);
   private
     walls: array[0..numwalls-1] of TWall;
     act,next: TPopulos;
@@ -1266,6 +1272,105 @@ begin
     exit;
   end;
   Reseed(ns);
+end;
+
+procedure TForm1.Load1Click(Sender: TObject);
+var
+  ini: TIniFile;
+  algo: string;
+begin
+  if not od2.Execute then exit;
+  if od2.FileName = '' then exit;
+  ini := TIniFile.Create(od2.FileName);
+
+  try
+    numAct.Value := ini.ReadInteger('Global','Pop',numAct.Value);
+    base_seed := ini.ReadInteger('Global','Seed',base_seed);
+    algo := ini.ReadString('Global','Algo','Neat');
+
+    nElite.Value := ini.ReadInteger('Genetic','Elite',nElite.Value);
+    nAlpha.Value := ini.ReadInteger('Genetic','Alpha',nAlpha.Value);
+    nBeta.Value := ini.ReadInteger('Genetic','Beta',nBeta.Value);
+    kMutate.Numb := ini.ReadFloat('Genetic','Mutate',kMutate.Numb);
+    kInvert.Numb := ini.ReadFloat('Genetic','Invert',kInvert.Numb);
+    nSplits.Value := ini.ReadInteger('Genetic','Splits',nSplits.Value);
+    nWinner.Value := ini.ReadInteger('Genetic','Winner',nWinner.Value);
+    cbCumulFit.Checked := ini.ReadBool('Genetic','CumulFit',cbCumulFit.Checked);
+    cbEliteClones.Checked := ini.ReadBool('Genetic','EliteClone',cbEliteClones.Checked);
+
+    xMin.Numb := ini.ReadFloat('Neural','MinVal',xMin.Numb);
+    xMax.Numb := ini.ReadFloat('Neural','MaxVal',xMax.Numb);
+    xMinAct.Numb := ini.ReadFloat('Neural','MinAct',xMinAct.Numb);
+    xActMag.Numb := ini.ReadFloat('Neural','ActMag',xActMag.Numb);
+    cbScaleDw.Checked := ini.ReadBool('Neural','ScaleDw',cbScaleDw.Checked);
+    cbConstMag.Checked := ini.ReadBool('Neural','ConstMag',cbConstMag.Checked);
+    cbStepFun.Checked := ini.ReadBool('Neural','StepFun',cbStepFun.Checked);
+
+    xLRate.Numb := ini.ReadFloat('RL','LRate',xLRate.Numb);
+  except
+    Application.MessageBox('Malformed INI file','Load Error',MB_OK + MB_ICONERROR);
+    ini.Free;
+    exit;
+  end;
+  ini.Free;
+
+  if SameText(algo,'neat') then rb2.Checked := True
+  else if SameText(algo,'rl') then
+  begin
+    rb3.Checked := True;
+    rb3Click(Sender);
+  end
+  else rb1.Checked := True;
+    
+  Reseed(0);
+  ShowMessage('Setup loaded');
+end;
+
+procedure TForm1.Save1Click(Sender: TObject);
+var
+  ini: TIniFile;
+  algo: string;
+begin
+  if not sd2.Execute then exit;
+  if sd2.FileName = '' then exit;
+
+  if rb2.Checked then algo := 'Neat'
+  else if rb3.Checked then algo := 'RL'
+  else algo := 'Algo';
+
+  ini := TIniFile.Create(sd2.FileName);
+  try
+    ini.WriteInteger('Global','Pop',numAct.Value);
+    ini.WriteInteger('Global','Seed',base_seed);
+    ini.WriteString('Global','Algo',algo);
+
+    ini.WriteInteger('Genetic','Elite',nElite.Value);
+    ini.WriteInteger('Genetic','Alpha',nAlpha.Value);
+    ini.WriteInteger('Genetic','Beta',nBeta.Value);
+    ini.WriteFloat('Genetic','Mutate',kMutate.Numb);
+    ini.WriteFloat('Genetic','Invert',kInvert.Numb);
+    ini.WriteInteger('Genetic','Splits',nSplits.Value);
+    ini.WriteInteger('Genetic','Winner',nWinner.Value);
+    ini.WriteBool('Genetic','CumulFit',cbCumulFit.Checked);
+    ini.WriteBool('Genetic','EliteClone',cbEliteClones.Checked);
+
+    ini.WriteFloat('Neural','MinVal',xMin.Numb);
+    ini.WriteFloat('Neural','MaxVal',xMax.Numb);
+    ini.WriteFloat('Neural','MinAct',xMinAct.Numb);
+    ini.WriteFloat('Neural','ActMag',xActMag.Numb);
+    ini.WriteBool('Neural','ScaleDw',cbScaleDw.Checked);
+    ini.WriteBool('Neural','ConstMag',cbConstMag.Checked);
+    ini.WriteBool('Neural','StepFun',cbStepFun.Checked);
+
+    ini.WriteFloat('RL','LRate',xLRate.Numb);
+  except
+    Application.MessageBox('Error while saving INI file','Save Error',MB_OK + MB_ICONERROR);
+    ini.Free;
+    exit;
+  end;
+  ini.Free;
+
+  ShowMessage('Setup saved');
 end;
 
 end.

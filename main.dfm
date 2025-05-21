@@ -531,6 +531,14 @@ object Form1: TForm1
         Caption = 'Set seed'
         OnClick = Setseed1Click
       end
+      object Load1: TMenuItem
+        Caption = 'Load'
+        OnClick = Load1Click
+      end
+      object Save1: TMenuItem
+        Caption = 'Save'
+        OnClick = Save1Click
+      end
     end
     object Run1: TMenuItem
       Caption = 'Run'
@@ -562,5 +570,19 @@ object Form1: TForm1
     Title = 'Save data'
     Left = 48
     Top = 104
+  end
+  object od2: TOpenDialog
+    DefaultExt = 'ini'
+    Filter = 'INI files|*.ini|All files|*.*'
+    Title = 'Load setup'
+    Left = 16
+    Top = 136
+  end
+  object sd2: TSaveDialog
+    DefaultExt = 'ini'
+    Filter = 'INI files|*.ini|All files|*.*'
+    Title = 'Save setup'
+    Left = 48
+    Top = 136
   end
 end
