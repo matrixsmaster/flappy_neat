@@ -881,7 +881,7 @@ begin
           else if vx < -eps then vx := -eps;
           // apply advantage with learning rate and previous axon (activation) charge
           if adv < 0 then vx := -vx;
-          vn := vx * learn_rate * (xAxCharge.Numb * act[i].axons[j]);
+          vn := vx * learn_rate + (xAxCharge.Numb * act[i].axons[j]);
         end;  // dorand
 
         // apply the actual change

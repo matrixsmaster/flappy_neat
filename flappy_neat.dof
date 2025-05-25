@@ -115,7 +115,7 @@ AutoIncBuild=0
 MajorVer=0
 MinorVer=1
 Release=5
-Build=132
+Build=134
 Debug=0
 PreRelease=0
 Special=0
@@ -126,7 +126,7 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=MatrixS_Master aka sciloaf
 FileDescription=Flappy NEAT AI test
-FileVersion=0.1.5.132
+FileVersion=0.1.5.134
 InternalName=
 LegalCopyright=(C) MatrixS_Master, 2025
 LegalTrademarks=

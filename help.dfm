@@ -55,6 +55,13 @@ object frmHelp: TfrmHelp
       Width = 258
       Height = 213
       Align = alClient
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Courier New'
+      Font.Style = []
+      ParentFont = False
+      ScrollBars = ssVertical
       TabOrder = 0
     end
   end
