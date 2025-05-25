@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ImgList, ExtCtrls, StdCtrls, Spin, Buttons, Grids, ComCtrls, Math,
-  NEdit, Menus, StrUtils, IniFiles;
+  NEdit, Menus, StrUtils, IniFiles, help, about;
 
 const
   numwalls = 4;
@@ -142,6 +142,8 @@ type
     xAxCharge: TNEdit;
     Label22: TLabel;
     xLRUp: TNEdit;
+    Help2: TMenuItem;
+    N3: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -170,6 +172,10 @@ type
     procedure Setseed1Click(Sender: TObject);
     procedure Load1Click(Sender: TObject);
     procedure Save1Click(Sender: TObject);
+    procedure Label4Click(Sender: TObject);
+    procedure Naming1Click(Sender: TObject);
+    procedure About1Click(Sender: TObject);
+    procedure Help2Click(Sender: TObject);
   private
     walls: array[0..numwalls-1] of TWall;
     act,next: TPopulos;
@@ -182,6 +188,8 @@ type
     last_bscn: integer;
     base_seed: longint;
     learn_rate: real;
+    help_act: boolean;
+    help_tip: boolean;
   public
     procedure Reseed(nseed: Longint);
     procedure Reset(id: integer);
@@ -236,6 +244,8 @@ begin
   surf := TBitmap.Create;
   surf.Width := pb.ClientWidth;
   surf.Height := pb.ClientHeight;
+  help_act := false;
+  help_tip := false;
 end;
 
 procedure TForm1.Reseed(nseed: Longint);
@@ -1375,6 +1385,11 @@ begin
     cbStepFun.Checked := ini.ReadBool('Neural','StepFun',cbStepFun.Checked);
 
     xLRate.Numb := ini.ReadFloat('RL','LRate',xLRate.Numb);
+    xLRDev.Numb := ini.ReadFloat('RL','LRDev',xLRDev.Numb);
+    xLRUp.Numb := ini.ReadFloat('RL','LRUp',xLRUp.Numb);
+    xEpsilon.Numb := ini.ReadFloat('RL','Epsilon',xEpsilon.Numb);
+    xKappa.Numb := ini.ReadFloat('RL','Kappa',xKappa.Numb);
+    xAxCharge.Numb := ini.ReadFloat('RL','AxCharge',xAxCharge.Numb);
   except
     Application.MessageBox('Malformed INI file','Load Error',MB_OK + MB_ICONERROR);
     ini.Free;
@@ -1431,6 +1446,11 @@ begin
     ini.WriteBool('Neural','StepFun',cbStepFun.Checked);
 
     ini.WriteFloat('RL','LRate',xLRate.Numb);
+    ini.WriteFloat('RL','LRDev',xLRDev.Numb);
+    ini.WriteFloat('RL','LRUp',xLRUp.Numb);
+    ini.WriteFloat('RL','Epsilon',xEpsilon.Numb);
+    ini.WriteFloat('RL','Kappa',xKappa.Numb);
+    ini.WriteFloat('RL','AxCharge',xAxCharge.Numb);
   except
     Application.MessageBox('Error while saving INI file','Save Error',MB_OK + MB_ICONERROR);
     ini.Free;
@@ -1439,6 +1459,39 @@ begin
   ini.Free;
 
   ShowMessage('Setup saved');
+end;
+
+procedure TForm1.Label4Click(Sender: TObject);
+begin
+  if not help_act then exit;
+    
+  if Sender is TLabel then
+    frmHelp.request := (Sender as TLabel).Caption
+  else
+    frmHelp.request := (Sender as TCheckBox).Caption;
+
+  help_act := false;
+  frmHelp.Show;
+end;
+
+procedure TForm1.Naming1Click(Sender: TObject);
+begin
+  if not help_tip then
+    ShowMessage('Press LMB on a label/check box to get its description');
+  help_act := true;
+  help_tip := true;
+end;
+
+procedure TForm1.About1Click(Sender: TObject);
+begin
+  AboutBox.ShowModal;
+end;
+
+procedure TForm1.Help2Click(Sender: TObject);
+begin
+  help_act := false;
+  frmHelp.request := '';
+  frmHelp.Show;
 end;
 
 end.

@@ -1,0 +1,18 @@
+<General>
+This program represents a testbench for neuro-evolution algorithms and reinforcement learning.
+It implements both classic methods and operators as well as introducing new and unique operators. One example of a new and unique genetic operator is "Alpha-selection".
+***
+Elite
+This parameter controls the amount of most top-performing actors to be copied verbatim to the next generation.
+***
+Alpha
+This parameter controls the amount of unique top-performing actors (Elite actors included in this pool) to be mated with a unique corresponding group of Beta actors.
+***
+Beta
+This parameter defines the size of a group to be mated per each Alpha actor. Beta actors are selected after all Alpha actors have been identified and represent second-best actors after all Alpha actors.
+***
+Omega
+This value represents the remaining of the population to be considered for crossovers after all Alpha and Beta actors were selected. Passive parameter.
+***
+Random fill
+This value represents the remaining of the next generation population which can't be formed by crossovers, and have to be filled with random genes. This usually is either 1 or 0 (depending on the even/odd size of the population and even/odd amount of Elite actors).

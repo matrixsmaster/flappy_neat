@@ -212,6 +212,7 @@ object Form1: TForm1
       Width = 20
       Height = 13
       Caption = 'Elite'
+      OnClick = Label4Click
     end
     object Label5: TLabel
       Left = 8
@@ -219,6 +220,7 @@ object Form1: TForm1
       Width = 27
       Height = 13
       Caption = 'Alpha'
+      OnClick = Label4Click
     end
     object Label6: TLabel
       Left = 8
@@ -226,6 +228,7 @@ object Form1: TForm1
       Width = 22
       Height = 13
       Caption = 'Beta'
+      OnClick = Label4Click
     end
     object Label7: TLabel
       Left = 8
@@ -233,6 +236,7 @@ object Form1: TForm1
       Width = 33
       Height = 13
       Caption = 'Mutate'
+      OnClick = Label4Click
     end
     object Label8: TLabel
       Left = 8
@@ -240,6 +244,7 @@ object Form1: TForm1
       Width = 27
       Height = 13
       Caption = 'Invert'
+      OnClick = Label4Click
     end
     object Label9: TLabel
       Left = 8
@@ -247,6 +252,7 @@ object Form1: TForm1
       Width = 25
       Height = 13
       Caption = 'Splits'
+      OnClick = Label4Click
     end
     object Label14: TLabel
       Left = 8
@@ -254,6 +260,7 @@ object Form1: TForm1
       Width = 34
       Height = 13
       Caption = 'Winner'
+      OnClick = Label4Click
     end
     object kInvert: TNEdit
       Left = 48
@@ -261,7 +268,7 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 4
-      Text = '0.1'
+      Text = '0.100000001490116'
       Numb = 0.100000001490116100
     end
     object kMutate: TNEdit
@@ -270,7 +277,7 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 3
-      Text = '0.12'
+      Text = '0.119999997317791'
       Numb = 0.119999997317791000
     end
     object nElite: TSpinEdit
@@ -320,6 +327,7 @@ object Form1: TForm1
       Height = 17
       Caption = 'Cumul. fitness'
       TabOrder = 7
+      OnClick = Label4Click
     end
     object nWinner: TSpinEdit
       Left = 48
@@ -338,6 +346,7 @@ object Form1: TForm1
       Height = 17
       Caption = 'Elite clones'
       TabOrder = 8
+      OnClick = Label4Click
     end
   end
   object GroupBox3: TGroupBox
@@ -353,6 +362,7 @@ object Form1: TForm1
       Width = 32
       Height = 13
       Caption = 'MinVal'
+      OnClick = Label4Click
     end
     object Label11: TLabel
       Left = 8
@@ -360,6 +370,7 @@ object Form1: TForm1
       Width = 35
       Height = 13
       Caption = 'MaxVal'
+      OnClick = Label4Click
     end
     object Label13: TLabel
       Left = 8
@@ -367,6 +378,7 @@ object Form1: TForm1
       Width = 33
       Height = 13
       Caption = 'MinAct'
+      OnClick = Label4Click
     end
     object Label15: TLabel
       Left = 8
@@ -374,6 +386,7 @@ object Form1: TForm1
       Width = 37
       Height = 13
       Caption = 'ActMag'
+      OnClick = Label4Click
     end
     object xMin: TNEdit
       Left = 48
@@ -420,6 +433,7 @@ object Form1: TForm1
       Checked = True
       State = cbChecked
       TabOrder = 4
+      OnClick = Label4Click
     end
     object cbConstMag: TCheckBox
       Left = 8
@@ -430,6 +444,7 @@ object Form1: TForm1
       Checked = True
       State = cbChecked
       TabOrder = 5
+      OnClick = Label4Click
     end
     object cbStepFun: TCheckBox
       Left = 8
@@ -438,6 +453,7 @@ object Form1: TForm1
       Height = 17
       Caption = 'Step function'
       TabOrder = 6
+      OnClick = Label4Click
     end
   end
   object GroupBox4: TGroupBox
@@ -453,6 +469,7 @@ object Form1: TForm1
       Width = 29
       Height = 13
       Caption = 'LRate'
+      OnClick = Label4Click
     end
     object Label18: TLabel
       Left = 8
@@ -460,6 +477,7 @@ object Form1: TForm1
       Width = 34
       Height = 13
       Caption = 'LRDev'
+      OnClick = Label4Click
     end
     object Label19: TLabel
       Left = 8
@@ -467,6 +485,7 @@ object Form1: TForm1
       Width = 34
       Height = 13
       Caption = 'Epsilon'
+      OnClick = Label4Click
     end
     object Label20: TLabel
       Left = 8
@@ -474,6 +493,7 @@ object Form1: TForm1
       Width = 31
       Height = 13
       Caption = 'Kappa'
+      OnClick = Label4Click
     end
     object Label21: TLabel
       Left = 8
@@ -481,6 +501,7 @@ object Form1: TForm1
       Width = 34
       Height = 13
       Caption = 'AxChrg'
+      OnClick = Label4Click
     end
     object Label22: TLabel
       Left = 8
@@ -488,6 +509,7 @@ object Form1: TForm1
       Width = 28
       Height = 13
       Caption = 'LRUp'
+      OnClick = Label4Click
     end
     object xLRate: TNEdit
       Left = 48
@@ -495,7 +517,7 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 0
-      Text = '0.05'
+      Text = '0.0500000007450581'
       Numb = 0.050000000745058060
     end
     object xLRDev: TNEdit
@@ -504,7 +526,7 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 1
-      Text = '0.04'
+      Text = '0.0399999991059303'
       Numb = 0.039999999105930330
     end
     object xEpsilon: TNEdit
@@ -513,7 +535,7 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 3
-      Text = '0.2'
+      Text = '0.200000002980232'
       Numb = 0.200000002980232200
     end
     object xKappa: TNEdit
@@ -522,7 +544,7 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 4
-      Text = '0.01'
+      Text = '0.00999999977648258'
       Numb = 0.009999999776482582
     end
     object xAxCharge: TNEdit
@@ -531,7 +553,7 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 5
-      Text = '0.05'
+      Text = '0.0500000007450581'
       Numb = 0.050000000745058060
     end
     object xLRUp: TNEdit
@@ -540,7 +562,7 @@ object Form1: TForm1
       Width = 49
       Height = 21
       TabOrder = 2
-      Text = '0.05'
+      Text = '0.0500000007450581'
       Numb = 0.050000000745058060
     end
   end
@@ -638,11 +660,21 @@ object Form1: TForm1
     end
     object Help1: TMenuItem
       Caption = 'Help'
+      object Help2: TMenuItem
+        Caption = 'Help'
+        OnClick = Help2Click
+      end
       object Naming1: TMenuItem
-        Caption = 'Naming'
+        Caption = 'Quick help'
+        ShortCut = 112
+        OnClick = Naming1Click
+      end
+      object N3: TMenuItem
+        Caption = '-'
       end
       object About1: TMenuItem
         Caption = 'About'
+        OnClick = About1Click
       end
     end
   end

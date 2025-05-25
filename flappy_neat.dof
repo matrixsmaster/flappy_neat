@@ -114,8 +114,8 @@ IncludeVerInfo=1
 AutoIncBuild=0
 MajorVer=0
 MinorVer=1
-Release=4
-Build=128
+Release=5
+Build=132
 Debug=0
 PreRelease=0
 Special=0
@@ -124,13 +124,16 @@ DLL=0
 Locale=1033
 CodePage=1252
 [Version Info Keys]
-CompanyName=
-FileDescription=
-FileVersion=0.1.4.128
+CompanyName=MatrixS_Master aka sciloaf
+FileDescription=Flappy NEAT AI test
+FileVersion=0.1.5.132
 InternalName=
-LegalCopyright=
+LegalCopyright=(C) MatrixS_Master, 2025
 LegalTrademarks=
 OriginalFilename=
 ProductName=
-ProductVersion=1.0.0.0
-Comments=
+ProductVersion=0.1
+Comments=Experimenting with AI using Delphi 7 in Windows XP - how could it possibly go wrong?
+[HistoryLists\hlUnitAliases]
+Count=1
+Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
