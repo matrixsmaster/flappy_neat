@@ -46,8 +46,6 @@ type
   PPopulos = ^TPopulos;
 
   TNeuroThread = class(TThread)
-  private
-    { Private declarations }
   protected
     procedure Execute; override;
   end;
@@ -190,6 +188,7 @@ type
     learn_rate: real;
     help_act: boolean;
     help_tip: boolean;
+    fast_thread: TNeuroThread;
   public
     procedure Reseed(nseed: Longint);
     procedure Reset(id: integer);
@@ -201,6 +200,9 @@ type
     procedure Draw;
     procedure TranslateKey(key: Word; state: boolean);
     function NextWall(p: TPoint): integer;
+    procedure QuantumTimer;
+    procedure StartAuto;
+    procedure StopAuto;
     procedure SolveTrad(id: integer);
     procedure SolveNeat(id: integer);
     procedure SolveRein(id: integer);
@@ -235,6 +237,7 @@ uses weights;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
+  DecimalSeparator := '.';
   Reseed(0);
   SetLength(act,1);
   act[0].color := clFuchsia;
@@ -246,6 +249,7 @@ begin
   surf.Height := pb.ClientHeight;
   help_act := false;
   help_tip := false;
+  fast_thread := nil;
 end;
 
 procedure TForm1.Reseed(nseed: Longint);
@@ -438,21 +442,18 @@ end;
 
 procedure TForm1.BitBtn1Click(Sender: TObject);
 begin
-  auto := true;
   ResetField;
   Newpopulation1Click(Sender);
   Timer1.Enabled := false;
-  Timer2.Enabled := true;
+  StartAuto;
 end;
 
-procedure TForm1.Timer2Timer(Sender: TObject);
+procedure TForm1.QuantumTimer;
 var
   I,bsc,bscn: Integer;
-  over,rest: boolean;
+  over: boolean;
 begin
-  over := true; // if noone's alive, this population is over
-  rest := Timer2.Enabled; // restart the timer after finishing the cycle
-  Timer2.Enabled := false; // stop timer to prevent recursive calls in implicitly-called message pump
+  over := true; // if noone's alive, this generation is over
 
   // for each actor, fire up a solver and then step simulation for that actor
   for I := 0 to High(act) do
@@ -497,13 +498,49 @@ begin
     else if rb3.Checked then ReinNext
     else
     begin
-      rest := false;
+      StopAuto;
       ShowMessage('AI Game Over');
     end;
   end;
+end;
 
-  // finally, restart the timer (if needed)
-  Timer2.Enabled := rest;
+procedure TForm1.StartAuto;
+begin
+  auto := true;
+  Timer2.Enabled := true;
+end;
+
+procedure TForm1.StopAuto;
+begin
+  Timer2.Enabled := false;
+  if fast_thread <> nil then
+  begin
+    fast_thread.Terminate;
+    fast_thread.WaitFor;
+    fast_thread.Free;
+    fast_thread := nil;
+  end;
+  auto := false;
+end;
+
+procedure TForm1.Timer2Timer(Sender: TObject);
+var
+  rest: boolean;
+begin
+  rest := Timer2.Enabled;
+  Timer2.Enabled := false; // stop timer to prevent recursive calls inside implicitly-called message pumps
+
+  if Timer2.Interval = 1 then
+  begin
+    // hand it over to the continuous thread
+    StopAuto;
+    auto := true;
+    fast_thread := TNeuroThread.Create(false);
+    exit;
+  end else
+    QuantumTimer;
+
+  Timer2.Enabled := rest and auto; // if something's reset the automatic mode, don't restart
 end;
 
 function TForm1.NextWall(p: TPoint): integer;
@@ -824,13 +861,8 @@ begin
       win := i;
     end;
   end;    // for
-
-  if win < 0 then
-  begin
-    Timer2.Enabled := False;
-    ShowMessage('No winner found. Abort.');
-    exit;
-  end;
+  
+  if win < 0 then exit;
 
   // update the guiding values
   Inc(iter);
@@ -916,7 +948,7 @@ var
   p: Integer;
 begin
   p := speed.Max - speed.Position;
-  if p = 0 then Timer2.Interval := 1 // pseudo-thread
+  if p = 0 then Timer2.Interval := 1 // this will trigger handover to the thread object
   else Timer2.Interval := p * 10;
 end;
 
@@ -1022,8 +1054,7 @@ end;
 procedure TForm1.BitBtn2Click(Sender: TObject);
 begin
   Timer1.Enabled := False;
-  Timer2.Enabled := False;
-  auto := False;
+  StopAuto;
 end;
 
 procedure TForm1.pbMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1298,8 +1329,7 @@ begin
     SetLength(act,High(act)+1);
     RandomGenes(act[High(act)].g);
   end;    // while
-  auto := true;
-  Timer2.Enabled := true;
+  StartAuto;
 end;
 
 procedure TForm1.Resetfield1Click(Sender: TObject);
@@ -1319,20 +1349,10 @@ begin
   Close;
 end;
 
-{ Important: Methods and properties of objects in visual components can only be
-  used in a method called using Synchronize, for example,
-
-      Synchronize(UpdateCaption);
-
-  and UpdateCaption could look like,
-
-    procedure TNeuroThread.UpdateCaption;
-    begin
-      Form1.Caption := 'Updated in a thread';
-    end; }
 procedure TNeuroThread.Execute;
 begin
-  { Place thread code here }
+  while not Terminated do
+    Synchronize(Form1.QuantumTimer);
 end;
 
 procedure TForm1.rb3Click(Sender: TObject);
@@ -1413,9 +1433,20 @@ procedure TForm1.Save1Click(Sender: TObject);
 var
   ini: TIniFile;
   algo: string;
+  pseed: integer;
 begin
   if not sd2.Execute then exit;
   if sd2.FileName = '' then exit;
+
+  pseed := base_seed;
+  if base_seed = 0 then
+  begin
+    try
+      base_seed := StrToInt(MidStr(Label17.Caption,7,100)); // "Seed: <seed>"
+    except
+      base_seed := 0;
+    end;
+  end;
 
   if rb2.Checked then algo := 'Neat'
   else if rb3.Checked then algo := 'RL'
@@ -1458,13 +1489,14 @@ begin
   end;
   ini.Free;
 
+  base_seed := pseed;
   ShowMessage('Setup saved');
 end;
 
 procedure TForm1.Label4Click(Sender: TObject);
 begin
   if not help_act then exit;
-    
+
   if Sender is TLabel then
     frmHelp.request := (Sender as TLabel).Caption
   else
