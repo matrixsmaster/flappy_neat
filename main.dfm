@@ -595,6 +595,7 @@ object Form1: TForm1
       Caption = 'File'
       object Newpopulation1: TMenuItem
         Caption = 'New population'
+        ShortCut = 16462
         OnClick = Newpopulation1Click
       end
       object Savepopulation1: TMenuItem
@@ -652,6 +653,9 @@ object Form1: TForm1
         Caption = 'Reset actors'
         OnClick = Resetactors1Click
       end
+      object N4: TMenuItem
+        Caption = '-'
+      end
       object Runnow1: TMenuItem
         Caption = 'Run now'
         ShortCut = 116
@@ -662,6 +666,7 @@ object Form1: TForm1
       Caption = 'Help'
       object Help2: TMenuItem
         Caption = 'Help'
+        ShortCut = 8304
         OnClick = Help2Click
       end
       object Naming1: TMenuItem
@@ -674,6 +679,7 @@ object Form1: TForm1
       end
       object About1: TMenuItem
         Caption = 'About'
+        ShortCut = 16496
         OnClick = About1Click
       end
     end

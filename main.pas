@@ -142,6 +142,7 @@ type
     xLRUp: TNEdit;
     Help2: TMenuItem;
     N3: TMenuItem;
+    N4: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -182,6 +183,7 @@ type
     prev_best,all_best: integer;
     surf: TBitmap;
     nn_points: array[0..maxneurons-1] of TPoint;
+    nn_psize: integer;
     last_drawn: TGenes;
     last_bscn: integer;
     base_seed: longint;
@@ -674,14 +676,18 @@ var
   pts: array of integer;
   ra,rb: TGenes;
 begin
+  // create and reset the array of split points
   SetLength(pts,splits);
   for I := 0 to High(pts) do pts[I] := 99;
+
+  // generate all split points
   for I := 0 to High(pts) do
   begin
-    for J := 0 to 1000 do
+    for J := 0 to 1000 do // failsafe iterator
     begin
       xv := random(splits);
       fnd := false;
+      // check for duplicates
       for K := 0 to High(pts) do
       begin
         if pts[K] = xv then
@@ -690,29 +696,36 @@ begin
           break;
         end;
       end;    // for
+      // if it's a unique point, continue to next step
       if not fnd then break;
     end;    // for
 
+    // insert the split point so the array will be always sorted
     for J := 0 to High(pts) do
     begin
-      if pts[J] > xv then
+      if pts[J] > xv then // found insertion point
       begin
+        // shift all values to the right
         for K := J to High(pts)-1 do pts[K+1] := pts[K];
-        pts[J] := xv;
+        pts[J] := xv; // insert
         break;
       end;
     end;    // for
   end;    // for
 
+  // start the crossover procedure itself
   flip := false;
   K := 0;
   for I := 0 to High(a) do
   begin
+    // if it's a split point
     if I = pts[K] then
     begin
+      // flip the flip-flop :)
       Inc(K);
       flip := not flip;
     end;
+    // copy straight or swapped depending on the flip-flop
     if not flip then
     begin
       ra[I] := a[I];
@@ -724,6 +737,7 @@ begin
     end;
   end;    // for
 
+  // write the results back
   a := ra;
   b := rb;
 end;
@@ -954,7 +968,7 @@ end;
 
 procedure TForm1.DrawNetwork(g: PGenes);
 var
-  i,j,cx,cy,hs: Integer;
+  i,j,cx,cy,cs,hs: Integer;
 begin
   with pb2.Canvas do
   begin
@@ -966,7 +980,8 @@ begin
     FillRect(ClipRect);
   end;    // with
 
-  hs := cellsize div 2;
+  cs := pb2.ClientWidth div (maxneurons div fixinputs + 1);
+  hs := cs div 3;
   cx := hs;
   cy := hs;
   for i := 0 to maxneurons-1 do
@@ -978,11 +993,16 @@ begin
     end else if i+fixouts >= maxneurons then
     begin
       pb2.Canvas.Brush.Color := clRed;
+      if i+fixouts = maxneurons then
+      begin
+        cx := cx + cs;
+        cy := hs;
+      end;
     end else
     begin
       if i mod fixinputs = 0 then
       begin
-        cx := cx + cellsize * 2;
+        cx := cx + cs;
         cy := hs;
       end;
       if abs(g[(maxneurons+1)*i]) < xMinAct.Numb then
@@ -997,10 +1017,9 @@ begin
     nn_points[i].X := cx;
     nn_points[i].Y := cy;
 
-    cy := cy + cellsize * 2;
+    cy := cy + cs;
   end;    // for
 
-  //pb2.Canvas.Pen.Width := 2;
   for i := 0 to maxneurons-1 do
   begin
     if abs(g[(maxneurons+1)*i]) < xMinAct.Numb then continue;
@@ -1019,6 +1038,7 @@ begin
   end;
 
   last_drawn := g^;
+  nn_psize := cs;
 end;
 
 procedure TForm1.DrawHeatmap(a: PActor);
@@ -1040,7 +1060,7 @@ begin
     if a.axons[i] > maxval then maxval := a.axons[i];
   end;    // for
 
-  hs := cellsize div 2;
+  hs := nn_psize div 3;
   for i := fixinputs to maxneurons-1 do
   begin
     with pb2.Canvas do

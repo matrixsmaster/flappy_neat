@@ -96,3 +96,4 @@ AxChrg
 The axon charge parameter represents the influence of neuron's axon value to the speed of updating that neuron's weights. Usually, hotter neurons represent more desirable points for updates, but depending on the other parameters chosen, it might become less undesirable.
 Setting this value too high might quickly destabilize the network.
 Setting this value too low might lead to a much longer solution search.
+***
