@@ -143,6 +143,10 @@ type
     Help2: TMenuItem;
     N3: TMenuItem;
     N4: TMenuItem;
+    Panel3: TPanel;
+    Panel4: TPanel;
+    Panel5: TPanel;
+    Splitter1: TSplitter;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -175,6 +179,7 @@ type
     procedure Naming1Click(Sender: TObject);
     procedure About1Click(Sender: TObject);
     procedure Help2Click(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   private
     walls: array[0..numwalls-1] of TWall;
     act,next: TPopulos;
@@ -200,7 +205,7 @@ type
     procedure StepField;
     procedure GameOver(id: integer);
     procedure Draw;
-    procedure TranslateKey(key: Word; state: boolean);
+    function TranslateKey(key: Word; state: boolean): boolean;
     function NextWall(p: TPoint): integer;
     procedure QuantumTimer;
     procedure StartAuto;
@@ -247,8 +252,6 @@ begin
   ResetField;
   auto := false;
   surf := TBitmap.Create;
-  surf.Width := pb.ClientWidth;
-  surf.Height := pb.ClientHeight;
   help_act := false;
   help_tip := false;
   fast_thread := nil;
@@ -354,8 +357,10 @@ procedure TForm1.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   if auto then exit;
-  if not Timer1.Enabled then Timer1.Enabled := True;
-  TranslateKey(Key,true);
+  if TranslateKey(Key,true) then
+  begin
+    if not Timer1.Enabled then Timer1.Enabled := True;
+  end;
 end;
 
 procedure TForm1.FormKeyUp(Sender: TObject; var Key: Word;
@@ -425,20 +430,22 @@ begin
   Label1.Caption := 'Score: '+IntToStr(act[0].score);
 end;
 
-procedure TForm1.TranslateKey(key: Word; state: boolean);
+function TForm1.TranslateKey(key: Word; state: boolean): boolean;
 var
   i: Integer;
 begin
   i := -1;
+  Result := false;
   case Key of    //
     VK_UP: i := 0;
     VK_SPACE: i := 0;
     Ord('W'): i := 0;
     Ord('S'): i := 1;
     VK_DOWN: i := 1;
+  else exit;
   end;    // case
 
-  if i < 0 then exit;
+  Result := true;
   act[0].input[i] := state;
 end;
 
@@ -784,9 +791,7 @@ var
 begin
   af := PActor(a);
   bf := PActor(b);
-  if af.score < bf.score then Result := 1
-  else if af.score > bf.score then Result := -1
-  else Result := 0;
+  Result := bf.score - af.score;
 end;
 
 function TForm1.SortPop(src: PPopulos): TPopulos;
@@ -1544,6 +1549,40 @@ begin
   help_act := false;
   frmHelp.request := '';
   frmHelp.Show;
+end;
+
+procedure TForm1.FormResize(Sender: TObject);
+var
+  ya,yb,xc,dh,dw: integer;
+begin
+  surf.Width := pb.ClientWidth;
+  surf.Height := pb.ClientHeight;
+  Edit1.Left := Panel1.Left + Panel1.Width - Edit1.Width - 8;
+
+  // smart repositioning of the neural network visualization
+  ya := BitBtn2.Top + BitBtn2.Height;
+  yb := GroupBox2.Top + GroupBox2.Height;
+  xc := GroupBox4.Left + GroupBox4.Width;
+  dh := Panel4.ClientHeight - yb;
+  dw := Panel4.ClientWidth - xc;
+  if (dh > yb-ya) and (dh > dw) then
+  begin
+    Panel2.Top := yb + 8;
+    Panel2.Left := BitBtn2.Left;
+  end else if dw > BitBtn2.Width then
+  begin
+    Panel2.Top := speed.Top;
+    Panel2.Left := xc + 8;
+  end else
+  begin
+    Panel2.Top := ya + 8;
+    Panel2.Left := BitBtn2.Left;
+    Panel2.Width := BitBtn2.Width;
+    Panel2.Height := yb - ya - 8;
+    exit;
+  end;
+  Panel2.Width := Panel4.ClientWidth - Panel2.Left - 8;
+  Panel2.Height := Panel4.ClientHeight - Panel2.Top - 8;
 end;
 
 end.
