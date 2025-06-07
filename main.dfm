@@ -425,6 +425,7 @@ object Form1: TForm1
         Width = 28
         Height = 13
         Caption = 'NSize'
+        OnClick = Label4Click
       end
       object xMin: TNEdit
         Left = 48

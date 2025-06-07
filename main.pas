@@ -185,6 +185,7 @@ type
     auto: boolean;
     iter: integer;
     prev_best,all_best: integer;
+    best_act: TActor;
     surf: TBitmap;
     nn_points: array[0..maxneurons-1] of TPoint;
     nn_psize: integer;
@@ -819,6 +820,7 @@ var
 begin
   Inc(iter);
   arr := SortPop(@act);
+  best_act := arr[0];
   prev_best := arr[0].score;
   if all_best < prev_best then all_best := prev_best;
   Label12.Caption := 'Previous: ' + IntToStr(prev_best) + '; Best: ' + IntToStr(all_best);
@@ -885,6 +887,7 @@ begin
   end;    // for
   
   if win < 0 then exit;
+  best_act := act[win];
 
   // update the guiding values
   Inc(iter);
@@ -1265,11 +1268,10 @@ begin
   if (High(act) < 0) or (not sd1.Execute) then exit;
   if sd1.FileName = '' then exit;
 
-  // TODO: backup best-performing actor into a separate var, save it here (don't rely on act[] being sorted)
   AssignFile(f,sd1.FileName);
   try
     Rewrite(f);
-    WriteLn(f,GenesToString(@(act[0].g)));
+    WriteLn(f,GenesToString(@(best_act.g)));
     ShowMessage('Saved');
   finally
     CloseFile(f);
@@ -1300,6 +1302,7 @@ begin
 
   Newpopulation1Click(Sender);
   act[0].g := g;
+  best_act := act[0];
   ShowMessage('Loaded');
 end;
 
