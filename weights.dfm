@@ -1,10 +1,10 @@
 object frmWeights: TfrmWeights
   Left = 839
   Top = 114
-  Width = 476
-  Height = 342
+  Width = 481
+  Height = 349
   BorderStyle = bsSizeToolWin
-  Caption = 'frmWeights'
+  Caption = 'Neural Weights'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,8 +20,8 @@ object frmWeights: TfrmWeights
   object sg: TStringGrid
     Left = 0
     Top = 0
-    Width = 468
-    Height = 308
+    Width = 473
+    Height = 315
     Align = alClient
     ColCount = 16
     DefaultColWidth = 28

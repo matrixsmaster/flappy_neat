@@ -17,7 +17,6 @@ const
   fixinputs = 4;
   fixouts = 2;
   precision = 3;
-  //epsilon = 0.01;
 
 type
   TWall = record
@@ -985,7 +984,12 @@ begin
     FillRect(ClipRect);
   end;    // with
 
+  // select optimal size for neurons
   cs := pb2.ClientWidth div (maxneurons div fixinputs + 1);
+  hs := pb2.ClientHeight div fixinputs;
+  if hs < cs then cs := hs;
+
+  // draw the neurons
   hs := cs div 3;
   cx := hs;
   cy := hs;
@@ -1025,6 +1029,7 @@ begin
     cy := cy + cs;
   end;    // for
 
+  // draw the connections
   for i := 0 to maxneurons-1 do
   begin
     if abs(g[(maxneurons+1)*i]) < xMinAct.Numb then continue;
@@ -1555,6 +1560,7 @@ procedure TForm1.FormResize(Sender: TObject);
 var
   ya,yb,xc,dh,dw: integer;
 begin
+  StopAuto;
   surf.Width := pb.ClientWidth;
   surf.Height := pb.ClientHeight;
   Edit1.Left := Panel1.Left + Panel1.Width - Edit1.Width - 8;
