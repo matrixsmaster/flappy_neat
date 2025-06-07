@@ -9,7 +9,7 @@ uses
 
 const
   numwalls = 4;
-  maxneurons = 16;
+  maxneurons = 64;
   mindist = 100;
   cellsize = 16;
   jumpspeed = 4;
@@ -146,6 +146,8 @@ type
     Panel4: TPanel;
     Panel5: TPanel;
     Splitter1: TSplitter;
+    Label23: TLabel;
+    nSize: TSpinEdit;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
@@ -157,8 +159,6 @@ type
     procedure speedChange(Sender: TObject);
     procedure BitBtn2Click(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure pb2MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure pb2DblClick(Sender: TObject);
     procedure Newpopulation1Click(Sender: TObject);
@@ -195,6 +195,7 @@ type
     help_act: boolean;
     help_tip: boolean;
     fast_thread: TNeuroThread;
+    nneurons: integer;
   public
     procedure Reseed(nseed: Longint);
     procedure Reset(id: integer);
@@ -254,6 +255,9 @@ begin
   help_act := false;
   help_tip := false;
   fast_thread := nil;
+  nSize.MinValue := fixinputs + fixouts;
+  nSize.MaxValue := maxneurons;
+  nneurons := nSize.Value;
 end;
 
 procedure TForm1.Reseed(nseed: Longint);
@@ -894,7 +898,7 @@ begin
 
   // get the L1 norm of the winner
   vx := 0;
-  for i := 0 to maxneurons-1 do
+  for i := 0 to nneurons-1 do
     vx := vx + abs(act[win].g[i] - act[win].backup[i]);
   dorand := (vx < xKappa.Numb);
 
@@ -914,10 +918,10 @@ begin
     // copy best weights
     if i <> win then act[i].g := act[win].g;
     // for each middle or output neuron
-    for j := fixinputs to maxneurons-1 do
+    for j := fixinputs to nneurons-1 do
     begin
       // for each weight
-      for k := 0 to maxneurons-1 do
+      for k := 0 to nneurons-1 do
       begin
         // compute the change
         if dorand then
@@ -925,7 +929,7 @@ begin
           vn := (random - 0.5) * 2.0 * eps; // in range [-epsilon, +epsilon]
         end else
         begin
-          vx := act[i].g[maxneurons*j+k] - act[i].backup[maxneurons*j+k];
+          vx := act[i].g[nneurons*j+k] - act[i].backup[nneurons*j+k];
           // normal PPO-style clipped update
           if vx > eps then vx := eps
           else if vx < -eps then vx := -eps;
@@ -935,11 +939,11 @@ begin
         end;  // dorand
 
         // apply the actual change
-        vn := act[i].g[maxneurons*j+k] + vn;
+        vn := act[i].g[nneurons*j+k] + vn;
         if vn > xMax.Numb then vn := xMax.Numb
         else if vn < xMin.Numb then vn := xMin.Numb;
-        act[i].backup[maxneurons*j+k] := act[i].g[maxneurons*j+k];
-        act[i].g[maxneurons*j+k] := vn;
+        act[i].backup[nneurons*j+k] := act[i].g[nneurons*j+k];
+        act[i].g[nneurons*j+k] := vn;
       end;    // for
     end;    // for
     Reset(i);
@@ -985,7 +989,7 @@ begin
   end;    // with
 
   // select optimal size for neurons
-  cs := pb2.ClientWidth div (maxneurons div fixinputs + 1);
+  cs := pb2.ClientWidth div (nneurons div fixinputs + 1);
   hs := pb2.ClientHeight div fixinputs;
   if hs < cs then cs := hs;
 
@@ -993,16 +997,16 @@ begin
   hs := cs div 3;
   cx := hs;
   cy := hs;
-  for i := 0 to maxneurons-1 do
+  for i := 0 to nneurons-1 do
   begin
     pb2.Canvas.Pen.Style := psSolid;
     if i < fixinputs then
     begin
       pb2.Canvas.Brush.Color := clGreen;
-    end else if i+fixouts >= maxneurons then
+    end else if i+fixouts >= nneurons then
     begin
       pb2.Canvas.Brush.Color := clRed;
-      if i+fixouts = maxneurons then
+      if i+fixouts = nneurons then
       begin
         cx := cx + cs;
         cy := hs;
@@ -1014,7 +1018,7 @@ begin
         cx := cx + cs;
         cy := hs;
       end;
-      if abs(g[(maxneurons+1)*i]) < xMinAct.Numb then
+      if abs(g[(nneurons+1)*i]) < xMinAct.Numb then
       begin
         pb2.Canvas.Brush.Color := clWhite;
         pb2.Canvas.Pen.Style := psClear;
@@ -1030,17 +1034,17 @@ begin
   end;    // for
 
   // draw the connections
-  for i := 0 to maxneurons-1 do
+  for i := 0 to nneurons-1 do
   begin
-    if abs(g[(maxneurons+1)*i]) < xMinAct.Numb then continue;
-    for j := 0 to maxneurons-1 do
+    if abs(g[(nneurons+1)*i]) < xMinAct.Numb then continue;
+    for j := 0 to nneurons-1 do
     begin
       if i = j then continue;
       if i < fixinputs then continue;
-      if (abs(g[(maxneurons+1)*j]) < xMinAct.Numb) and (j >= fixinputs) then continue;
+      if (abs(g[(nneurons+1)*j]) < xMinAct.Numb) and (j >= fixinputs) then continue;
       with pb2.Canvas do
       begin
-        Pen.Color := (round((g[maxneurons*i+j]-xMin.Numb)/(xMax.Numb-xMin.Numb)*256.0) and $FF) shl 16;
+        Pen.Color := (round((g[nneurons*i+j]-xMin.Numb)/(xMax.Numb-xMin.Numb)*256.0) and $FF) shl 16;
         MoveTo(nn_points[i].X,nn_points[i].Y);
         LineTo(nn_points[j].X,nn_points[j].Y);
       end;    // with
@@ -1064,14 +1068,14 @@ begin
 
   minval := 1e10;
   maxval := -1e10;
-  for i := fixinputs to maxneurons-fixouts do
+  for i := fixinputs to nneurons-fixouts do
   begin
     if a.axons[i] < minval then minval := a.axons[i];
     if a.axons[i] > maxval then maxval := a.axons[i];
   end;    // for
 
   hs := nn_psize div 3;
-  for i := fixinputs to maxneurons-1 do
+  for i := fixinputs to nneurons-1 do
   begin
     with pb2.Canvas do
     begin
@@ -1144,17 +1148,17 @@ var
   i,j: Integer;
   sum,k: real;
 begin
-  for i := fixinputs to maxneurons-1 do
+  for i := fixinputs to nneurons-1 do
   begin
-    if abs(a.g[(maxneurons+1)*i]) < xMinAct.Numb then continue;
+    if abs(a.g[(nneurons+1)*i]) < xMinAct.Numb then continue;
     sum := 0;
-    for j := 0 to maxneurons-1 do
+    for j := 0 to nneurons-1 do
     begin
       if i = j then continue;
       // neurons without activation would have 0 on their axons, effectively removing them from computation
       // an extra check just makes things slower
-      //if abs(a.g[(maxneurons+1)*j]) < xMinAct.Numb then continue;
-      sum := sum + a.axons[j] * a.g[maxneurons*i+j];
+      //if abs(a.g[(nneurons+1)*j]) < xMinAct.Numb then continue;
+      sum := sum + a.axons[j] * a.g[nneurons*i+j];
     end;    // for
 
     if cbStepFun.Checked then
@@ -1165,19 +1169,13 @@ begin
     end else
     begin
       if cbConstMag.Checked then k := xActMag.Numb
-      else k := xActMag.Numb * abs(a.g[(maxneurons+1)*i]);
+      else k := xActMag.Numb * abs(a.g[(nneurons+1)*i]);
       a.axons[i] := tanh(sum * k / 2.0);
     end;
   end;    // for
 
   for i := 0 to fixouts-1 do
-    a.input[i] := a.axons[maxneurons-fixouts+i] > 0.5;
-end;
-
-procedure TForm1.pb2MouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  //
+    a.input[i] := a.axons[nneurons-fixouts+i] > 0.5;
 end;
 
 procedure TForm1.pb2DblClick(Sender: TObject);
@@ -1191,6 +1189,7 @@ var
   i: Integer;
 begin
   Reseed(0);
+  nneurons := nSize.Value;
   SetLength(act,numAct.Value);
   for i := 0 to High(act) do
   begin
@@ -1346,6 +1345,7 @@ begin
 
   lst.Free;
   Reseed(0);
+  nneurons := nSize.Value;
   ResetField;
   Resetactors1Click(Sender);
   ShowMessage('Loaded');
@@ -1426,6 +1426,7 @@ begin
     cbCumulFit.Checked := ini.ReadBool('Genetic','CumulFit',cbCumulFit.Checked);
     cbEliteClones.Checked := ini.ReadBool('Genetic','EliteClone',cbEliteClones.Checked);
 
+    nSize.Value := ini.ReadInteger('Neural','NSize',nSize.Value);
     xMin.Numb := ini.ReadFloat('Neural','MinVal',xMin.Numb);
     xMax.Numb := ini.ReadFloat('Neural','MaxVal',xMax.Numb);
     xMinAct.Numb := ini.ReadFloat('Neural','MinAct',xMinAct.Numb);
@@ -1456,6 +1457,7 @@ begin
   else rb1.Checked := True;
     
   Reseed(0);
+  nneurons := nSize.Value;
   ShowMessage('Setup loaded');
 end;
 
@@ -1498,6 +1500,7 @@ begin
     ini.WriteBool('Genetic','CumulFit',cbCumulFit.Checked);
     ini.WriteBool('Genetic','EliteClone',cbEliteClones.Checked);
 
+    ini.WriteInteger('Neural','NSize',nSize.Value);
     ini.WriteFloat('Neural','MinVal',xMin.Numb);
     ini.WriteFloat('Neural','MaxVal',xMax.Numb);
     ini.WriteFloat('Neural','MinAct',xMinAct.Numb);

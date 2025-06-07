@@ -41,7 +41,7 @@ object Form1: TForm1
       Height = 288
       Align = alClient
       BevelOuter = bvLowered
-      TabOrder = 0
+      TabOrder = 1
       object pb: TPaintBox
         Left = 1
         Top = 1
@@ -58,7 +58,7 @@ object Form1: TForm1
       Height = 33
       Align = alTop
       BevelOuter = bvLowered
-      TabOrder = 1
+      TabOrder = 0
       object Label12: TLabel
         Left = 96
         Top = 8
@@ -118,7 +118,7 @@ object Form1: TForm1
       Top = 200
       Width = 113
       Height = 113
-      TabOrder = 0
+      TabOrder = 10
       object pb2: TPaintBox
         Left = 1
         Top = 1
@@ -126,7 +126,6 @@ object Form1: TForm1
         Height = 111
         Align = alClient
         OnDblClick = pb2DblClick
-        OnMouseDown = pb2MouseDown
       end
     end
     object numAct: TSpinEdit
@@ -136,7 +135,7 @@ object Form1: TForm1
       Height = 22
       MaxValue = 9999
       MinValue = 1
-      TabOrder = 1
+      TabOrder = 4
       Value = 100
     end
     object BitBtn1: TBitBtn
@@ -146,7 +145,7 @@ object Form1: TForm1
       Height = 25
       Caption = 'AI'
       ModalResult = 1
-      TabOrder = 2
+      TabOrder = 0
       OnClick = BitBtn1Click
       Glyph.Data = {
         DE010000424DDE01000000000000760000002800000024000000120000000100
@@ -173,7 +172,7 @@ object Form1: TForm1
       Width = 113
       Height = 73
       Caption = 'Solver'
-      TabOrder = 3
+      TabOrder = 8
       object rb1: TRadioButton
         Left = 8
         Top = 16
@@ -210,7 +209,7 @@ object Form1: TForm1
       Caption = 'Draw steps'
       Checked = True
       State = cbChecked
-      TabOrder = 4
+      TabOrder = 2
     end
     object speed: TTrackBar
       Left = 128
@@ -218,7 +217,7 @@ object Form1: TForm1
       Width = 233
       Height = 33
       Position = 5
-      TabOrder = 5
+      TabOrder = 1
       OnChange = speedChange
     end
     object BitBtn2: TBitBtn
@@ -227,7 +226,7 @@ object Form1: TForm1
       Width = 113
       Height = 25
       Caption = 'Stop'
-      TabOrder = 6
+      TabOrder = 9
       OnClick = BitBtn2Click
       Kind = bkAbort
     end
@@ -237,7 +236,7 @@ object Form1: TForm1
       Width = 105
       Height = 265
       Caption = 'Genetic'
-      TabOrder = 7
+      TabOrder = 5
       object Label4: TLabel
         Left = 8
         Top = 24
@@ -387,10 +386,10 @@ object Form1: TForm1
       Width = 105
       Height = 265
       Caption = 'Neural'
-      TabOrder = 8
+      TabOrder = 6
       object Label10: TLabel
         Left = 8
-        Top = 24
+        Top = 48
         Width = 32
         Height = 13
         Caption = 'MinVal'
@@ -398,7 +397,7 @@ object Form1: TForm1
       end
       object Label11: TLabel
         Left = 8
-        Top = 48
+        Top = 72
         Width = 35
         Height = 13
         Caption = 'MaxVal'
@@ -406,7 +405,7 @@ object Form1: TForm1
       end
       object Label13: TLabel
         Left = 8
-        Top = 72
+        Top = 96
         Width = 33
         Height = 13
         Caption = 'MinAct'
@@ -414,78 +413,95 @@ object Form1: TForm1
       end
       object Label15: TLabel
         Left = 8
-        Top = 96
+        Top = 120
         Width = 37
         Height = 13
         Caption = 'ActMag'
         OnClick = Label4Click
       end
-      object xMin: TNEdit
-        Left = 48
+      object Label23: TLabel
+        Left = 8
         Top = 24
-        Width = 49
-        Height = 21
-        TabOrder = 0
-        Text = '-2'
-        Numb = -2.000000000000000000
+        Width = 28
+        Height = 13
+        Caption = 'NSize'
       end
-      object xMax: TNEdit
+      object xMin: TNEdit
         Left = 48
         Top = 48
         Width = 49
         Height = 21
         TabOrder = 1
-        Text = '2'
-        Numb = 2.000000000000000000
+        Text = '-2'
+        Numb = -2.000000000000000000
       end
-      object xMinAct: TNEdit
+      object xMax: TNEdit
         Left = 48
         Top = 72
         Width = 49
         Height = 21
         TabOrder = 2
-        Text = '0.5'
-        Numb = 0.500000000000000000
+        Text = '2'
+        Numb = 2.000000000000000000
       end
-      object xActMag: TNEdit
+      object xMinAct: TNEdit
         Left = 48
         Top = 96
         Width = 49
         Height = 21
         TabOrder = 3
+        Text = '0.5'
+        Numb = 0.500000000000000000
+      end
+      object xActMag: TNEdit
+        Left = 48
+        Top = 120
+        Width = 49
+        Height = 21
+        TabOrder = 4
         Text = '100'
         Numb = 100.000000000000000000
       end
       object cbScaleDw: TCheckBox
         Left = 8
-        Top = 128
+        Top = 152
         Width = 81
         Height = 17
         Caption = 'Scale down'
         Checked = True
         State = cbChecked
-        TabOrder = 4
+        TabOrder = 5
         OnClick = Label4Click
       end
       object cbConstMag: TCheckBox
         Left = 8
-        Top = 152
+        Top = 176
         Width = 81
         Height = 17
         Caption = 'Const mag.'
         Checked = True
         State = cbChecked
-        TabOrder = 5
+        TabOrder = 6
         OnClick = Label4Click
       end
       object cbStepFun: TCheckBox
         Left = 8
-        Top = 176
+        Top = 200
         Width = 89
         Height = 17
         Caption = 'Step function'
-        TabOrder = 6
+        TabOrder = 7
         OnClick = Label4Click
+      end
+      object nSize: TSpinEdit
+        Left = 48
+        Top = 24
+        Width = 49
+        Height = 22
+        MaxValue = 0
+        MinValue = 0
+        TabOrder = 0
+        Value = 16
       end
     end
     object GroupBox4: TGroupBox
@@ -494,7 +510,7 @@ object Form1: TForm1
       Width = 105
       Height = 241
       Caption = 'Reinforcement'
-      TabOrder = 9
+      TabOrder = 7
       object Label16: TLabel
         Left = 8
         Top = 24
@@ -604,7 +620,7 @@ object Form1: TForm1
       Width = 97
       Height = 17
       Caption = 'Draw heatmap'
-      TabOrder = 10
+      TabOrder = 3
     end
   end
   object Timer1: TTimer

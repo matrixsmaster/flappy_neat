@@ -47,6 +47,9 @@ The bad side-effect of such events is that it errorneously mixes up the scoring 
 Elite clones
 This option enables copying of the best performing actor to form the whole pool of elite actors. In other words, all elite actors selected for the next iteration would be identical to the best-performing actor of the last iteration.
 ***
+NSize
+This parameter controls the size of the neural network used for each actor. The minimum amount of neurons is dictated by the sum of mandatory inputs and outputs, while the maximum amount is hardcoded (as it's used in generating genetic sequences).
+***
 MinVal
 This value represents the minimum value for neural functions to operate on. This by no mean guarantees that all values within the network would never go below "MinVal", but at least the scaling would try to keep activations to be within the limit.
 ***
