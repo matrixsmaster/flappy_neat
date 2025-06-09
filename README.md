@@ -40,8 +40,6 @@ We recommend spinning up a virtual machine for this purpose. Nostalgia points ar
 
 ## 🎛️ Parameter Glossary
 
-> What all those sliders and toggles in the UI actually do (based on the original help file):
-
 ### 🌱 Genetic Parameters
 
 - **Elite**: Top performers copied unchanged into next gen
@@ -94,4 +92,4 @@ Hint: Try to use test INI files provided in the repo.
 
 ### (C) Dmitry 'MatrixS_Master' Solovyev, 2025
 
-License: GPL v3
+### License: GPL v3
