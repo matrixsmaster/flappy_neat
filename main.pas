@@ -232,6 +232,7 @@ type
     procedure NeuralEval(a: PActor);
     function GenesToString(g: PGenes): string;
     function StringToGenes(s: string; g: PGenes): boolean;
+    function GetNumNeurons: integer;
   end;
 
 var
@@ -1359,7 +1360,7 @@ begin
   if High(act) < 0 then exit;
   while High(act) < numAct.Value-1 do
   begin
-    SetLength(act,High(act)+1);
+    SetLength(act,High(act)+2);
     RandomGenes(act[High(act)].g);
   end;    // while
   StartAuto;
@@ -1595,6 +1596,11 @@ begin
   end;
   Panel2.Width := Panel4.ClientWidth - Panel2.Left - 8;
   Panel2.Height := Panel4.ClientHeight - Panel2.Top - 8;
+end;
+
+function TForm1.GetNumNeurons: integer;
+begin
+  Result := nneurons;
 end;
 
 end.

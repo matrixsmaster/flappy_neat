@@ -12,9 +12,10 @@ object frmWeights: TfrmWeights
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  PopupMenu = PopupMenu1
   Position = poMainFormCenter
   OnActivate = FormActivate
-  OnCreate = FormCreate
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object sg: TStringGrid
@@ -31,5 +32,20 @@ object frmWeights: TfrmWeights
     FixedRows = 0
     TabOrder = 0
     OnDrawCell = sgDrawCell
+  end
+  object sd1: TSaveDialog
+    DefaultExt = 'csv'
+    Filter = 'CSV files|*.csv|All files|*.*'
+    Title = 'Save as CSV'
+    Left = 48
+    Top = 40
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 16
+    Top = 40
+    object SaveasCSV1: TMenuItem
+      Caption = 'Save as CSV'
+      OnClick = SaveasCSV1Click
+    end
   end
 end
