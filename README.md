@@ -1,5 +1,7 @@
 # 🐤 Flappy NEAT
 
+<img src="img/screenshot01.jpg" alt="screenshot" style="max-width: 100%; height: auto; display: block;" />
+
 **Flappy NEAT** is a chaotic little testbench where neural networks learn to play a Flappy Bird–style game using a mix of **genetic neuro-evolution** and **reinforcement learning**. It’s designed to let you:
 
 - Compare **human**, **algorithmic**, **neuro-evolved**, and **RL-trained** performance
@@ -18,8 +20,9 @@ It’s a research toy, a performance benchmark, and a testbed for weird ideas—
 - 🎩 **Interactive human mode** for score comparison
 - 🤖 **Algorithmic solver mode** (perfect agent)
 - 🧪 **Experimental PPO-inspired RL strategy**
-- ↻ **Hybrid GA → RL transition** based on fitness threshold
-- 🛠️ **Live UI with parameter tweaking** and yes, even a help screen 😎
+- 🔀 **Hybrid GA → RL transition** based on fitness threshold
+- 🛠️ **Live UI** with parameter tweaking
+- 📚 **Help system** built into the UI with all information needed to understand every parameter
 - 🔄 **Save/load for agents and populations**
 - 🌍 **Neural network visualization and weight matrix viewer**
 - 🕛 **Scenario replay support for post-mortem analysis**
@@ -28,59 +31,13 @@ It’s a research toy, a performance benchmark, and a testbed for weird ideas—
 
 ## 🛠️ Running the Project
 
-This program was lovingly built using **Delphi 7**, which means:
+### A precompiled `.exe` is provided with each release - you can run it directly in windows or WINE.
+
+This program was built using **Delphi 7**, which means:
 
 > ⚠️ You will need a **Windows XP environment** with **Delphi 7** installed to compile and run this project.
 
 We recommend spinning up a virtual machine for this purpose. Nostalgia points are included for free.
-
-**Alternatively**, a precompiled `.exe` is provided with each release—you can run it directly in a compatible environment.
-
----
-
-## 🎛️ Parameter Glossary
-
-### 🌱 Genetic Parameters
-
-- **Elite**: Top performers copied unchanged into next gen
-- **Alpha**: Top unique actors selected for special mating
-- **Beta**: Second-tier actors mated with Alphas
-- **Omega**: Remaining population selected via tournament
-- **Random fill**: Fills leftover population gaps with random genes
-- **Mutate**: Chance for each gene to mutate (random float)
-- **Invert**: Probability of swapping two genes in one genome
-- **Splits**: Crossover points for child genomes
-- **Elite clones**: Copies top actor into all Elite slots
-
-### 🧠 Neural Network Settings
-
-- **NSize**: Number of neurons in each network
-- **MinVal / MaxVal**: Expected operating range for activations
-- **MinAct**: Threshold for neuron considered alive/active
-- **ActMag**: Slope multiplier for activation function
-- **Scale down**: Normalize inputs to MinVal–MaxVal
-- **Const mag.**: Use constant ActMag instead of per-gene coeff
-- **Step function**: Use hard step instead of tanh
-
-### 🤖 Reinforcement Learning
-
-- **Winner**: Score after which RL takes over from GA
-- **Cumul. fitness**: Preserves part of score between gens
-- **Global extinction**: Describes scenario when all agents fail early
-- **LRate**: Base RL learning rate
-- **LRDev / LRUp**: Controls adaptive learning rate changes
-- **Epsilon**: PPO-style clamp on weight updates
-- **Kappa**: Min weight delta to trigger full exploration
-- **AxChrg**: Neuron “hotness” multiplier for RL updates
-
----
-
-## 👾 Modes of Play
-
-- **Human mode**: Try to flap your way to glory yourself
-- **Algorithmic mode**: Watch a perfect agent clear the level with ease
-- **Neuro-evolution**: Evolve your own flappy brain from scratch
-- **RL hybrid**: Let GA get you close, and RL finish the job
 
 ---
 
